@@ -11,7 +11,12 @@ import {
 import { cn } from "@/lib/utils"
 import { hoyISO, parseImporteToCents } from "@/lib/finanzas/format"
 import { getIconoCategoria, COLOR_TIPO } from "@/lib/finanzas/iconos"
-import type { Categoria, NuevoMovimiento, TipoMovimiento } from "@/lib/finanzas/types"
+import type {
+  Categoria,
+  NuevoMovimiento,
+  Posicion,
+  TipoMovimiento,
+} from "@/lib/finanzas/types"
 
 const TIPOS: { valor: TipoMovimiento; etiqueta: string; accion: string }[] = [
   { valor: "gasto", etiqueta: "Gasto", accion: "Añadir gasto" },
@@ -30,6 +35,7 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   categorias: Categoria[]
+  posiciones: Posicion[]
   onAdd: (nuevo: NuevoMovimiento) => void
 }
 
@@ -37,10 +43,17 @@ interface Props {
  * Registro rápido: el flujo feliz son 3 toques — importe, categoría, guardar
  * (tipo "gasto" y fecha "hoy" vienen preseleccionados).
  */
-export function QuickAddDrawer({ open, onOpenChange, categorias, onAdd }: Props) {
+export function QuickAddDrawer({
+  open,
+  onOpenChange,
+  categorias,
+  posiciones,
+  onAdd,
+}: Props) {
   const [tipo, setTipo] = useState<TipoMovimiento>("gasto")
   const [importe, setImporte] = useState("")
   const [categoriaId, setCategoriaId] = useState<string | null>(null)
+  const [posicionId, setPosicionId] = useState<string | null>(null)
   const [concepto, setConcepto] = useState("")
   const [fecha, setFecha] = useState(hoyISO())
   const importeRef = useRef<HTMLInputElement>(null)
@@ -58,6 +71,7 @@ export function QuickAddDrawer({ open, onOpenChange, categorias, onAdd }: Props)
       setConcepto("")
       setFecha(hoyISO())
       setCategoriaId(null)
+      setPosicionId(null)
     }
   }, [open])
 
@@ -78,6 +92,7 @@ export function QuickAddDrawer({ open, onOpenChange, categorias, onAdd }: Props)
       categoria_id: categoriaId,
       concepto: concepto.trim(),
       importe_cents: importeCents,
+      posicion_id: tipo === "inversion" ? posicionId : null,
     })
     // Optimistic: se cierra ya; el hook sincroniza y avisa solo si falla
     onOpenChange(false)
@@ -172,6 +187,47 @@ export function QuickAddDrawer({ open, onOpenChange, categorias, onAdd }: Props)
               )
             })}
           </div>
+
+          {/* Posición (solo inversión, opcional): a qué posición de la cartera va la aportación */}
+          {tipo === "inversion" && posiciones.length > 0 && (
+            <div
+              className="flex flex-wrap justify-center gap-2"
+              role="radiogroup"
+              aria-label="Posición de la cartera"
+            >
+              <button
+                type="button"
+                role="radio"
+                aria-checked={posicionId === null}
+                onClick={() => setPosicionId(null)}
+                className={cn(
+                  "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
+                  posicionId === null
+                    ? "border-sky-500/50 bg-sky-500/15 text-sky-300"
+                    : "border-neutral-800 bg-neutral-900/60 text-neutral-500"
+                )}
+              >
+                Sin posición
+              </button>
+              {posiciones.map((pos) => (
+                <button
+                  key={pos.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={posicionId === pos.id}
+                  onClick={() => setPosicionId(pos.id)}
+                  className={cn(
+                    "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
+                    posicionId === pos.id
+                      ? "border-sky-500/50 bg-sky-500/15 text-sky-300"
+                      : "border-neutral-800 bg-neutral-900/60 text-neutral-500"
+                  )}
+                >
+                  {pos.nombre}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Concepto + fecha, secundarios */}
           <div className="grid grid-cols-[1fr_auto] gap-2">

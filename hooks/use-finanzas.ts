@@ -4,7 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { CATEGORIAS_DEFAULT } from "@/lib/finanzas/categorias-default"
-import type { Categoria, Movimiento, NuevoMovimiento } from "@/lib/finanzas/types"
+import type {
+  Categoria,
+  Movimiento,
+  NuevoMovimiento,
+  Posicion,
+} from "@/lib/finanzas/types"
 
 /** Orden de la lista: fecha más reciente primero; a igual fecha, lo último registrado arriba */
 function ordenarMovimientos(movs: Movimiento[]): Movimiento[] {
@@ -15,16 +20,16 @@ function ordenarMovimientos(movs: Movimiento[]): Movimiento[] {
 }
 
 /**
- * Estado central de finanzas en cliente: categorías + movimientos recientes.
+ * Estado central de finanzas en cliente: categorías, movimientos y posiciones.
  *
- * Registro con optimistic UI: el movimiento aparece en la lista al instante
- * con un id temporal y se sincroniza con Supabase por detrás; si falla,
- * se retira de la lista y se avisa con un toast (rollback).
+ * Escrituras con optimistic UI: el cambio se pinta al instante y se sincroniza
+ * con Supabase por detrás; si falla, se revierte y se avisa con un toast.
  */
 export function useFinanzas() {
   const supabase = useMemo(() => createClient(), [])
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [movimientos, setMovimientos] = useState<Movimiento[]>([])
+  const [posiciones, setPosiciones] = useState<Posicion[]>([])
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
@@ -64,13 +69,13 @@ export function useFinanzas() {
         }
       }
 
-      // 2. Últimos movimientos
+      // 2. Movimientos (todos: es una app personal, el volumen es pequeño;
+      //    si algún día crece, aquí se pagina)
       const { data: movs, error: errorMovs } = await supabase
         .from("movimientos")
         .select("*")
         .order("fecha", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(30)
 
       if (errorMovs && !cancelado) {
         toast.error("No se pudieron cargar los movimientos", {
@@ -78,9 +83,22 @@ export function useFinanzas() {
         })
       }
 
+      // 3. Posiciones de inversión
+      const { data: pos, error: errorPos } = await supabase
+        .from("posiciones")
+        .select("*")
+        .order("created_at")
+
+      if (errorPos && !cancelado) {
+        toast.error("No se pudieron cargar las posiciones", {
+          description: errorPos.message,
+        })
+      }
+
       if (!cancelado) {
         setCategorias(categoriasFinal)
         setMovimientos(movs ?? [])
+        setPosiciones(pos ?? [])
         setCargando(false)
       }
     }
@@ -128,10 +146,65 @@ export function useFinanzas() {
     [supabase]
   )
 
+  const addPosicion = useCallback(
+    async (nombre: string): Promise<Posicion | null> => {
+      const { data, error } = await supabase
+        .from("posiciones")
+        .insert({ nombre })
+        .select("*")
+        .single()
+
+      if (error) {
+        toast.error("No se pudo crear la posición", {
+          description: error.message,
+        })
+        return null
+      }
+      setPosiciones((prev) => [...prev, data])
+      return data
+    },
+    [supabase]
+  )
+
+  const setValorPosicion = useCallback(
+    async (id: string, valorCents: number) => {
+      // Optimista con rollback
+      let anterior: Posicion[] = []
+      setPosiciones((prev) => {
+        anterior = prev
+        return prev.map((p) =>
+          p.id === id ? { ...p, valor_actual_cents: valorCents } : p
+        )
+      })
+
+      const { error } = await supabase
+        .from("posiciones")
+        .update({ valor_actual_cents: valorCents })
+        .eq("id", id)
+
+      if (error) {
+        setPosiciones(anterior)
+        toast.error("No se pudo actualizar el valor", {
+          description: error.message,
+        })
+      }
+    },
+    [supabase]
+  )
+
   const categoriasById = useMemo(
     () => new Map(categorias.map((c) => [c.id, c])),
     [categorias]
   )
 
-  return { categorias, categoriasById, movimientos, cargando, addMovimiento }
+  return {
+    categorias,
+    categoriasById,
+    movimientos,
+    posiciones,
+    cargando,
+    addMovimiento,
+    addPosicion,
+    setValorPosicion,
+  }
 }

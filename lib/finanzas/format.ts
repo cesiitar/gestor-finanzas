@@ -36,6 +36,17 @@ export function parseImporteToCents(input: string): number | null {
   return Math.round(valor * 100)
 }
 
+/** 0.0834 → "8,3 %" (con signo si se pide) */
+export function formatPct(ratio: number, conSigno = false): string {
+  const pct = new Intl.NumberFormat("es-ES", {
+    style: "percent",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    signDisplay: conSigno ? "exceptZero" : "auto",
+  }).format(ratio)
+  return pct
+}
+
 /** Fecha local de hoy en formato YYYY-MM-DD (sin sorpresas de timezone) */
 export function hoyISO(): string {
   const d = new Date()
