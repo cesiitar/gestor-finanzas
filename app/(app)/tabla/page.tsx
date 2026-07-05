@@ -1,22 +1,5 @@
-import { Table2 } from "lucide-react"
+import { TablaView } from "@/components/finanzas/tabla-view"
 
-/** Placeholder: se construye en el paso 4 (tabla mensual + exportar) */
 export default function TablaPage() {
-  return (
-    <>
-      <header className="px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-2">
-        <h1 className="text-xl font-semibold tracking-tight">Tabla</h1>
-      </header>
-      <main className="px-4">
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-800 px-6 py-16 text-center">
-          <Table2 className="size-8 text-neutral-600" aria-hidden />
-          <p className="text-sm text-neutral-400">
-            La vista de tabla mensual con exportación a Excel/CSV
-            <br />
-            llega en el siguiente paso.
-          </p>
-        </div>
-      </main>
-    </>
-  )
+  return <TablaView />
 }
