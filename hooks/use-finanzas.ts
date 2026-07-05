@@ -192,6 +192,32 @@ export function useFinanzas() {
     [supabase]
   )
 
+  const setPresupuestoCategoria = useCallback(
+    async (id: string, presupuestoCents: number | null) => {
+      // Optimista con rollback
+      let anterior: Categoria[] = []
+      setCategorias((prev) => {
+        anterior = prev
+        return prev.map((c) =>
+          c.id === id ? { ...c, presupuesto_mensual_cents: presupuestoCents } : c
+        )
+      })
+
+      const { error } = await supabase
+        .from("categorias")
+        .update({ presupuesto_mensual_cents: presupuestoCents })
+        .eq("id", id)
+
+      if (error) {
+        setCategorias(anterior)
+        toast.error("No se pudo guardar el presupuesto", {
+          description: error.message,
+        })
+      }
+    },
+    [supabase]
+  )
+
   const categoriasById = useMemo(
     () => new Map(categorias.map((c) => [c.id, c])),
     [categorias]
@@ -206,5 +232,6 @@ export function useFinanzas() {
     addMovimiento,
     addPosicion,
     setValorPosicion,
+    setPresupuestoCategoria,
   }
 }

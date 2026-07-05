@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { LogoutButton } from "@/components/finanzas/logout-button"
+import { AjustesPresupuestos } from "@/components/finanzas/ajustes-presupuestos"
 import { Tags } from "lucide-react"
 
 /** Ajustes: sesión + (próximamente) gestión de categorías y presupuestos */
@@ -23,11 +24,12 @@ export default async function AjustesPage() {
           <LogoutButton />
         </section>
 
+        <AjustesPresupuestos />
+
         <section className="flex items-center gap-3 rounded-2xl border border-dashed border-neutral-800 px-4 py-6">
           <Tags className="size-5 shrink-0 text-neutral-600" aria-hidden />
           <p className="text-sm text-neutral-400">
-            La gestión de categorías y presupuestos mensuales llegará aquí en un
-            próximo paso.
+            Crear, renombrar y borrar categorías llegará en la segunda iteración.
           </p>
         </section>
       </main>

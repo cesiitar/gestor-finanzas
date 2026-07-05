@@ -1,14 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import {
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  ArrowUp,
-  ArrowDown,
-  Table2,
-} from "lucide-react"
+import { Download, ArrowUp, ArrowDown, Table2 } from "lucide-react"
 import {
   Drawer,
   DrawerContent,
@@ -17,8 +10,10 @@ import {
 } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
 import { formatEUR, hoyISO } from "@/lib/finanzas/format"
+import { etiquetaMes } from "@/lib/finanzas/mes"
 import { construirFilas, exportarCSV, exportarXLSX } from "@/lib/finanzas/export"
 import { useFinanzasCtx } from "./finanzas-provider"
+import { MesSelector } from "./mes-selector"
 import type { Movimiento } from "@/lib/finanzas/types"
 
 const ETIQUETA_TIPO = { ingreso: "Ingreso", gasto: "Gasto", inversion: "Inv." } as const
@@ -29,22 +24,6 @@ const COLOR_TIPO_TEXTO = {
 } as const
 
 type Columna = "fecha" | "tipo" | "categoria" | "concepto" | "importe"
-
-/** "2026-07" → "julio 2026" */
-function etiquetaMes(mesISO: string): string {
-  const [y, m] = mesISO.split("-").map(Number)
-  return new Date(y, m - 1, 1).toLocaleDateString("es-ES", {
-    month: "long",
-    year: "numeric",
-  })
-}
-
-/** Suma meses a un "YYYY-MM" */
-function sumarMeses(mesISO: string, delta: number): string {
-  const [y, m] = mesISO.split("-").map(Number)
-  const d = new Date(y, m - 1 + delta, 1)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
-}
 
 /**
  * Vista Tabla: el mes completo en filas y columnas, como en Excel.
@@ -149,27 +128,7 @@ export function TablaView() {
         </button>
       </header>
 
-      {/* Selector de mes */}
-      <div className="flex items-center justify-center gap-2 px-4 py-2">
-        <button
-          onClick={() => setMes((m) => sumarMeses(m, -1))}
-          aria-label="Mes anterior"
-          className="flex size-11 items-center justify-center rounded-full text-neutral-400 transition-colors hover:text-white cursor-pointer"
-        >
-          <ChevronLeft className="size-5" aria-hidden />
-        </button>
-        <p className="w-40 text-center text-base font-medium capitalize">
-          {etiquetaMes(mes)}
-        </p>
-        <button
-          onClick={() => setMes((m) => sumarMeses(m, 1))}
-          disabled={mes >= mesActual}
-          aria-label="Mes siguiente"
-          className="flex size-11 items-center justify-center rounded-full text-neutral-400 transition-colors hover:text-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
-        >
-          <ChevronRight className="size-5" aria-hidden />
-        </button>
-      </div>
+      <MesSelector mes={mes} onChange={setMes} />
 
       <main className="px-2">
         {cargando ? (
