@@ -1,7 +1,8 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useFinanzasCtx } from "./finanzas-provider"
@@ -17,8 +18,15 @@ const FILTROS: { valor: TipoMovimiento | "todos"; etiqueta: string }[] = [
 
 /** Home / Registro: últimos movimientos con filtro por tipo */
 export function HomeClient() {
-  const { categoriasById, movimientos, cargando } = useFinanzasCtx()
+  const { categoriasById, movimientos, cargando, abrirRegistro } = useFinanzasCtx()
   const [filtro, setFiltro] = useState<TipoMovimiento | "todos">("todos")
+  const searchParams = useSearchParams()
+
+  // Acceso directo del icono de la PWA: /?add=1 abre el registro al entrar
+  useEffect(() => {
+    if (searchParams.get("add") === "1") abrirRegistro()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const visibles = useMemo(
     () =>

@@ -42,3 +42,7 @@ next-env.d.ts
 
 # python cache (skills)
 __pycache__/
+
+# service worker generado por serwist build
+public/sw.js
+public/sw.js.map

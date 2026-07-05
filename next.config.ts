@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
+// El service worker (Serwist) se compila aparte con `serwist build`
+// (ver serwist.config.mjs); así no interfiere con Turbopack.
+const nextConfig: NextConfig = {};
 
 export default nextConfig;

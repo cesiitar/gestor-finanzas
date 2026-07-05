@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
+import { RegisterSW } from "@/components/register-sw";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,6 +17,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Gestor de finanzas",
   description: "Finanzas personales: gastos, ingresos e inversiones",
+  // Instalación como app en iOS (en Android manda el manifest)
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Finanzas",
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -40,6 +50,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <Toaster position="top-center" richColors />
+        <RegisterSW />
       </body>
     </html>
   );
