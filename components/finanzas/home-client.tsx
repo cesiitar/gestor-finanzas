@@ -38,14 +38,19 @@ export function HomeClient() {
 
   return (
     <>
-      <header className="flex items-center justify-between px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-2">
-        <h1 className="text-xl font-semibold tracking-tight">Finanzas</h1>
+      <header className="flex items-end justify-between px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3">
+        <div>
+          <p className="micro-label">Gestor de finanzas</p>
+          <h1 className="pt-1 font-display text-[26px] font-semibold leading-none tracking-tight">
+            Movimientos
+          </h1>
+        </div>
         <Link
           href="/ajustes"
           aria-label="Ajustes"
-          className="flex size-11 items-center justify-center rounded-full text-neutral-500 transition-colors hover:text-neutral-200"
+          className="flex size-11 items-center justify-center rounded-full border border-white/[0.07] bg-white/[0.03] text-neutral-400 transition-colors hover:text-neutral-100"
         >
-          <Settings className="size-5" aria-hidden />
+          <Settings className="size-[18px]" aria-hidden />
         </Link>
       </header>
 
@@ -65,8 +70,8 @@ export function HomeClient() {
             className={cn(
               "h-9 shrink-0 rounded-full border px-3.5 text-sm transition-colors cursor-pointer",
               filtro === f.valor
-                ? "border-white/25 bg-white/10 font-medium text-white"
-                : "border-neutral-800 bg-neutral-900/60 text-neutral-400"
+                ? "border-primary/40 bg-primary/10 font-medium text-primary"
+                : "border-white/[0.07] bg-white/[0.02] text-neutral-400 hover:text-neutral-200"
             )}
           >
             {f.etiqueta}
@@ -74,7 +79,7 @@ export function HomeClient() {
         ))}
       </div>
 
-      <main className="px-4">
+      <main className="px-4 pt-2">
         <MovimientosList
           movimientos={visibles}
           categoriasById={categoriasById}

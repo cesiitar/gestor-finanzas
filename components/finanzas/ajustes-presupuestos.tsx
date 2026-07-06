@@ -54,17 +54,15 @@ export function AjustesPresupuestos() {
 
   return (
     <section>
-      <h2 className="px-1.5 pb-2 text-sm font-medium text-neutral-500">
-        Presupuestos mensuales
-      </h2>
-      <ul className="overflow-hidden rounded-2xl bg-neutral-900/70">
+      <h2 className="micro-label px-1.5 pb-2">Presupuestos mensuales</h2>
+      <ul className="card divide-y divide-white/[0.04] overflow-hidden">
         {gastos.map((cat) => {
           const Icono = getIconoCategoria(cat.nombre, cat.tipo)
           return (
-            <li key={cat.id} className="border-b border-neutral-800/60 last:border-0">
+            <li key={cat.id}>
               <button
                 onClick={() => abrir(cat)}
-                className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-neutral-900 cursor-pointer"
+                className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/[0.03] cursor-pointer"
               >
                 <Icono className="size-4.5 shrink-0 text-neutral-500" aria-hidden />
                 <span className="min-w-0 flex-1 truncate text-[15px] text-neutral-100">
@@ -86,7 +84,7 @@ export function AjustesPresupuestos() {
         onOpenChange={(open) => !open && setEditando(null)}
         repositionInputs={false}
       >
-        <DrawerContent className="bg-neutral-950 border-neutral-800">
+        <DrawerContent className="border-white/[0.08] bg-[#101216]">
           <DrawerHeader>
             <DrawerTitle>Presupuesto mensual de {editando?.nombre}</DrawerTitle>
           </DrawerHeader>
@@ -102,7 +100,7 @@ export function AjustesPresupuestos() {
                 autoFocus
                 placeholder="0,00"
                 aria-label="Presupuesto mensual en euros"
-                className="w-44 bg-transparent text-right text-4xl font-semibold tabular-nums outline-none placeholder:text-neutral-700"
+                className="w-44 bg-transparent text-right font-display text-4xl font-semibold tabular-nums outline-none placeholder:text-neutral-700"
               />
               <span className="text-2xl font-medium text-neutral-400">€</span>
             </div>

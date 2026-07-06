@@ -70,15 +70,18 @@ export function InversionesView() {
 
   return (
     <>
-      <header className="px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-2">
-        <h1 className="text-xl font-semibold tracking-tight">Inversiones</h1>
+      <header className="px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3">
+        <p className="micro-label">Gestor de finanzas</p>
+        <h1 className="pt-1 font-display text-[26px] font-semibold leading-none tracking-tight">
+          Inversiones
+        </h1>
       </header>
 
       <main className="space-y-6 px-4">
         {/* KPIs de cartera */}
-        <section className="rounded-3xl bg-gradient-to-b from-sky-500/15 to-neutral-900/60 p-5 ring-1 ring-sky-500/20">
-          <p className="text-sm text-neutral-400">Valor de la cartera</p>
-          <p className="pt-1 text-4xl font-semibold tabular-nums">
+        <section className="rounded-[1.75rem] border border-sky-500/20 bg-gradient-to-b from-sky-500/[0.09] to-[#14161b] p-5">
+          <p className="micro-label">Valor de la cartera</p>
+          <p className="pt-1.5 font-display text-[42px] font-semibold leading-none tabular-nums">
             {formatEUR(valorCartera)}
           </p>
           <p className={cn("pt-1.5 text-sm font-medium tabular-nums", colorGanancia(ganancia))}>
@@ -93,10 +96,10 @@ export function InversionesView() {
         {/* Posiciones */}
         <section>
           <div className="flex items-center justify-between px-1.5 pb-3">
-            <h2 className="text-sm font-medium text-neutral-500">Posiciones</h2>
+            <h2 className="micro-label">Posiciones</h2>
             <button
               onClick={() => setNuevaAbierta(true)}
-              className="flex h-9 items-center gap-1 rounded-full border border-neutral-800 bg-neutral-900/60 px-3 text-xs text-neutral-300 transition-colors hover:text-white cursor-pointer"
+              className="flex h-9 items-center gap-1 rounded-full border border-primary/30 bg-primary/[0.08] px-3 text-xs font-medium text-primary transition-colors hover:bg-primary/[0.14] cursor-pointer"
             >
               <Plus className="size-3.5" aria-hidden /> Nueva
             </button>
@@ -117,7 +120,7 @@ export function InversionesView() {
                   <li key={pos.id}>
                     <button
                       onClick={() => setEditando(pos)}
-                      className="flex w-full items-center gap-3 rounded-2xl bg-neutral-900/70 px-4 py-3.5 text-left transition-colors hover:bg-neutral-900 cursor-pointer"
+                      className="card flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[#181b21] cursor-pointer"
                       aria-label={`Editar valor de ${pos.nombre}`}
                     >
                       <div className="min-w-0 flex-1">
@@ -129,7 +132,7 @@ export function InversionesView() {
                         </p>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className="text-[15px] font-semibold tabular-nums">
+                        <p className="font-display text-[15px] font-semibold tabular-nums">
                           {formatEUR(pos.valor_actual_cents)}
                         </p>
                         <p className={cn("text-xs font-medium tabular-nums", colorGanancia(gananciaPos))}>
@@ -148,9 +151,7 @@ export function InversionesView() {
 
         {/* Historial de aportaciones */}
         <section>
-          <h2 className="px-1.5 pb-3 text-sm font-medium text-neutral-500">
-            Aportaciones
-          </h2>
+          <h2 className="micro-label px-1.5 pb-3">Aportaciones</h2>
           <MovimientosList
             movimientos={aportaciones}
             categoriasById={categoriasById}
@@ -194,7 +195,7 @@ function NuevaPosicionDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="bg-neutral-950 border-neutral-800">
+      <DrawerContent className="border-white/[0.08] bg-[#101216]">
         <DrawerHeader>
           <DrawerTitle>Nueva posición</DrawerTitle>
         </DrawerHeader>
@@ -208,7 +209,7 @@ function NuevaPosicionDrawer({
             autoFocus
             placeholder="p. ej. MSCI World, Bitcoin, Plan de pensiones…"
             aria-label="Nombre de la posición"
-            className="h-12 rounded-xl border border-neutral-800 bg-neutral-900/60 px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-neutral-600"
+            className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
           />
           <button
             type="submit"
@@ -245,7 +246,7 @@ function EditarValorDrawer({
 
   return (
     <Drawer open={posicion !== null} onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="bg-neutral-950 border-neutral-800">
+      <DrawerContent className="border-white/[0.08] bg-[#101216]">
         <DrawerHeader>
           <DrawerTitle>Valor actual de {posicion?.nombre}</DrawerTitle>
         </DrawerHeader>
@@ -263,7 +264,7 @@ function EditarValorDrawer({
                 posicion ? (posicion.valor_actual_cents / 100).toLocaleString("es-ES", { minimumFractionDigits: 2 }) : "0,00"
               }
               aria-label="Valor actual en euros"
-              className="w-44 bg-transparent text-right text-4xl font-semibold tabular-nums text-sky-400 outline-none placeholder:text-neutral-700"
+              className="w-44 bg-transparent text-right font-display text-4xl font-semibold tabular-nums text-sky-400 outline-none placeholder:text-neutral-700"
             />
             <span className="text-2xl font-medium text-sky-400">€</span>
           </div>

@@ -102,7 +102,7 @@ export function QuickAddDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="bg-neutral-950 border-neutral-800">
+      <DrawerContent className="border-white/[0.08] bg-[#101216]">
         <DrawerHeader className="pb-2">
           <DrawerTitle className="sr-only">Añadir movimiento</DrawerTitle>
 
@@ -110,7 +110,7 @@ export function QuickAddDrawer({
           <div
             role="radiogroup"
             aria-label="Tipo de movimiento"
-            className="relative mx-auto grid w-full max-w-sm grid-cols-3 rounded-full bg-neutral-900 p-1"
+            className="relative mx-auto grid w-full max-w-sm grid-cols-3 rounded-full bg-white/[0.05] p-1"
           >
             {TIPOS.map((t) => (
               <button
@@ -154,7 +154,7 @@ export function QuickAddDrawer({
               placeholder="0,00"
               aria-label="Importe en euros"
               className={cn(
-                "w-40 bg-transparent text-right text-5xl font-semibold tabular-nums outline-none",
+                "w-40 bg-transparent text-right font-display text-5xl font-semibold tabular-nums outline-none",
                 "placeholder:text-neutral-700",
                 COLOR_TIPO[tipo].texto
               )}
@@ -178,7 +178,7 @@ export function QuickAddDrawer({
                     "flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm transition-colors cursor-pointer",
                     activa
                       ? "border-white/25 bg-white/10 text-white"
-                      : "border-neutral-800 bg-neutral-900/60 text-neutral-400"
+                      : "border-white/[0.07] bg-white/[0.02] text-neutral-400"
                   )}
                 >
                   <Icono className="size-4" aria-hidden />
@@ -204,7 +204,7 @@ export function QuickAddDrawer({
                   "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
                   posicionId === null
                     ? "border-sky-500/50 bg-sky-500/15 text-sky-300"
-                    : "border-neutral-800 bg-neutral-900/60 text-neutral-500"
+                    : "border-white/[0.07] bg-white/[0.02] text-neutral-500"
                 )}
               >
                 Sin posición
@@ -220,7 +220,7 @@ export function QuickAddDrawer({
                     "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
                     posicionId === pos.id
                       ? "border-sky-500/50 bg-sky-500/15 text-sky-300"
-                      : "border-neutral-800 bg-neutral-900/60 text-neutral-500"
+                      : "border-white/[0.07] bg-white/[0.02] text-neutral-500"
                   )}
                 >
                   {pos.nombre}
@@ -236,7 +236,7 @@ export function QuickAddDrawer({
               onChange={(e) => setConcepto(e.target.value)}
               placeholder="Concepto (opcional)"
               aria-label="Concepto o sitio"
-              className="h-12 rounded-xl border border-neutral-800 bg-neutral-900/60 px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-neutral-600"
+              className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-neutral-600"
             />
             <input
               type="date"
@@ -244,7 +244,7 @@ export function QuickAddDrawer({
               max={hoyISO()}
               onChange={(e) => setFecha(e.target.value)}
               aria-label="Fecha del movimiento"
-              className="h-12 rounded-xl border border-neutral-800 bg-neutral-900/60 px-3 text-sm text-neutral-300 outline-none focus-visible:ring-2 focus-visible:ring-neutral-600 [color-scheme:dark]"
+              className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-sm text-neutral-300 outline-none focus-visible:ring-2 focus-visible:ring-neutral-600 [color-scheme:dark]"
             />
           </div>
 

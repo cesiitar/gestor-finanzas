@@ -116,12 +116,17 @@ export function TablaView() {
 
   return (
     <>
-      <header className="flex items-center justify-between px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-2">
-        <h1 className="text-xl font-semibold tracking-tight">Tabla</h1>
+      <header className="flex items-end justify-between px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3">
+        <div>
+          <p className="micro-label">Gestor de finanzas</p>
+          <h1 className="pt-1 font-display text-[26px] font-semibold leading-none tracking-tight">
+            Tabla
+          </h1>
+        </div>
         <button
           onClick={() => setExportAbierto(true)}
           aria-label="Exportar"
-          className="flex h-10 items-center gap-1.5 rounded-full border border-neutral-800 bg-neutral-900/60 px-3.5 text-sm text-neutral-300 transition-colors hover:text-white cursor-pointer"
+          className="flex h-10 items-center gap-1.5 rounded-full border border-primary/30 bg-primary/[0.08] px-3.5 text-sm font-medium text-primary transition-colors hover:bg-primary/[0.14] cursor-pointer"
         >
           <Download className="size-4" aria-hidden />
           Exportar
@@ -141,10 +146,10 @@ export function TablaView() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-neutral-800/80">
+          <div className="overflow-x-auto rounded-[1.25rem] border border-white/[0.07] bg-[#14161b]">
             <table className="w-full min-w-[560px] border-collapse text-sm">
               <thead>
-                <tr className="border-b border-neutral-800 bg-neutral-900/80 text-left text-xs text-neutral-400">
+                <tr className="border-b border-neutral-800 bg-[#181b21] text-left text-xs text-neutral-400">
                   {CABECERAS.map(({ col, etiqueta, className }) => (
                     <th
                       key={col}
@@ -158,7 +163,7 @@ export function TablaView() {
                       className={cn(
                         "font-medium",
                         col === "importe" &&
-                          "sticky right-0 bg-neutral-900 shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]"
+                          "sticky right-0 bg-[#181b21] shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]"
                       )}
                     >
                       <button
@@ -202,7 +207,7 @@ export function TablaView() {
                       </td>
                       <td
                         className={cn(
-                          "sticky right-0 whitespace-nowrap bg-neutral-950 px-3 py-2.5 text-right font-medium tabular-nums shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]",
+                          "sticky right-0 whitespace-nowrap bg-[#14161b] px-3 py-2.5 text-right font-medium tabular-nums shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]",
                           COLOR_TIPO_TEXTO[m.tipo]
                         )}
                       >
@@ -213,12 +218,12 @@ export function TablaView() {
                   )
                 })}
               </tbody>
-              <tfoot className="border-t border-neutral-700 bg-neutral-900/80 text-xs">
+              <tfoot className="border-t border-neutral-700 bg-[#181b21] text-xs">
                 <tr>
                   <td colSpan={4} className="px-3 py-2 text-right text-neutral-400">
                     Ingresos
                   </td>
-                  <td className="sticky right-0 bg-neutral-900 px-3 py-2 text-right font-medium tabular-nums text-emerald-400 shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]">
+                  <td className="sticky right-0 bg-[#181b21] px-3 py-2 text-right font-medium tabular-nums text-emerald-400 shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]">
                     +{formatEUR(totales.ingresos)}
                   </td>
                 </tr>
@@ -226,7 +231,7 @@ export function TablaView() {
                   <td colSpan={4} className="px-3 py-2 text-right text-neutral-400">
                     Gastos
                   </td>
-                  <td className="sticky right-0 bg-neutral-900 px-3 py-2 text-right font-medium tabular-nums text-rose-400 shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]">
+                  <td className="sticky right-0 bg-[#181b21] px-3 py-2 text-right font-medium tabular-nums text-rose-400 shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]">
                     −{formatEUR(totales.gastos)}
                   </td>
                 </tr>
@@ -234,7 +239,7 @@ export function TablaView() {
                   <td colSpan={4} className="px-3 py-2 text-right text-neutral-400">
                     Inversión
                   </td>
-                  <td className="sticky right-0 bg-neutral-900 px-3 py-2 text-right font-medium tabular-nums text-sky-400 shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]">
+                  <td className="sticky right-0 bg-[#181b21] px-3 py-2 text-right font-medium tabular-nums text-sky-400 shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]">
                     {formatEUR(totales.inversion)}
                   </td>
                 </tr>
@@ -244,7 +249,7 @@ export function TablaView() {
                   </td>
                   <td
                     className={cn(
-                      "sticky right-0 bg-neutral-900 px-3 py-2.5 text-right font-semibold tabular-nums shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]",
+                      "sticky right-0 bg-[#181b21] px-3 py-2.5 text-right font-semibold tabular-nums shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]",
                       totales.ahorro >= 0 ? "text-emerald-400" : "text-rose-400"
                     )}
                   >
@@ -260,7 +265,7 @@ export function TablaView() {
 
       {/* Opciones de exportación */}
       <Drawer open={exportAbierto} onOpenChange={setExportAbierto}>
-        <DrawerContent className="bg-neutral-950 border-neutral-800">
+        <DrawerContent className="border-white/[0.08] bg-[#101216]">
           <DrawerHeader>
             <DrawerTitle>Exportar movimientos</DrawerTitle>
           </DrawerHeader>

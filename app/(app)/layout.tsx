@@ -20,9 +20,10 @@ export default async function AppLayout({
 
   return (
     <FinanzasProvider>
-      {/* pb amplio para que el contenido nunca quede tapado por la tab bar */}
-      <div className="mx-auto min-h-dvh w-full max-w-md bg-background pb-28">
-        {children}
+      {/* pb amplio para que el contenido nunca quede tapado por la tab bar flotante */}
+      <div className="relative mx-auto min-h-dvh w-full max-w-md bg-background pb-36">
+        <div className="page-glow" aria-hidden />
+        <div className="relative">{children}</div>
       </div>
     </FinanzasProvider>
   )

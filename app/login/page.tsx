@@ -3,6 +3,17 @@
 import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 
+/** Las tres barras del icono de la app, como marca */
+function LogoBarras() {
+  return (
+    <svg width="44" height="44" viewBox="0 0 512 512" aria-hidden>
+      <rect x="164" y="226" width="44" height="130" rx="22" fill="#fb7185" />
+      <rect x="236" y="166" width="44" height="190" rx="22" fill="#34d399" />
+      <rect x="308" y="106" width="44" height="250" rx="22" fill="#38bdf8" />
+    </svg>
+  )
+}
+
 /**
  * Login por magic link: se escribe el email y Supabase manda un enlace.
  * Sin contraseñas. Al pulsar el enlace del correo se entra en la app.
@@ -31,20 +42,31 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background p-6">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Gestor de finanzas</h1>
-          <p className="text-sm text-muted-foreground">
-            Escribe tu email y te mandamos un enlace para entrar.
+    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background p-6">
+      <div className="page-glow" aria-hidden />
+
+      <div className="relative w-full max-w-sm space-y-8">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <LogoBarras />
+          <div>
+            <p className="micro-label">Gestor de finanzas</p>
+            <h1 className="pt-1.5 font-display text-3xl font-semibold tracking-tight">
+              Tus cuentas,
+              <br />
+              claras.
+            </h1>
+          </div>
+          <p className="text-sm text-neutral-400">
+            Escribe tu email y te mandamos un enlace para entrar. Sin contraseñas.
           </p>
         </div>
 
         {status === "sent" ? (
-          <div className="rounded-lg border border-border bg-card p-4 text-center text-sm">
-            📬 Enlace enviado a <span className="font-medium">{email}</span>.
+          <div className="card p-5 text-center text-sm leading-relaxed text-neutral-300">
+            Enlace enviado a{" "}
+            <span className="font-medium text-neutral-100">{email}</span>.
             <br />
-            Revisa tu correo y pulsa el enlace en este mismo dispositivo.
+            Revisa tu correo y ábrelo en este mismo dispositivo.
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -55,17 +77,17 @@ export default function LoginPage() {
               placeholder="tu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-11 w-full rounded-lg border border-input bg-background px-4 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="h-12 w-full rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-primary/50"
             />
             <button
               type="submit"
               disabled={status === "sending"}
-              className="h-11 w-full rounded-lg bg-primary font-medium text-primary-foreground transition-opacity disabled:opacity-50"
+              className="h-12 w-full rounded-2xl bg-primary font-semibold text-primary-foreground transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
             >
               {status === "sending" ? "Enviando…" : "Enviar enlace"}
             </button>
             {status === "error" && (
-              <p className="text-sm text-destructive">Error: {errorMsg}</p>
+              <p className="text-sm text-rose-400">Error: {errorMsg}</p>
             )}
           </form>
         )}

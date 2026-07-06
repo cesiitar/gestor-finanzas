@@ -23,7 +23,7 @@ export function MesSelector({
       >
         <ChevronLeft className="size-5" aria-hidden />
       </button>
-      <p className="w-40 text-center text-base font-medium capitalize">
+      <p className="w-40 text-center font-display text-base font-medium capitalize">
         {etiquetaMes(mes)}
       </p>
       <button

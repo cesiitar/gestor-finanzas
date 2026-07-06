@@ -235,8 +235,11 @@ export function DashboardView() {
 
   return (
     <>
-      <header className="px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-2">
-        <h1 className="text-xl font-semibold tracking-tight">Panel</h1>
+      <header className="px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3">
+        <p className="micro-label">Gestor de finanzas</p>
+        <h1 className="pt-1 font-display text-[26px] font-semibold leading-none tracking-tight">
+          Panel
+        </h1>
       </header>
 
       <MesSelector mes={mes} onChange={setMes} />
@@ -251,13 +254,13 @@ export function DashboardView() {
         <main className="space-y-6 px-4">
           {/* ── KPI héroe: ahorro y tasa de ahorro ─────────────────── */}
           <section
-            className="rounded-3xl bg-gradient-to-b from-emerald-500/10 to-neutral-900/60 p-5 ring-1 ring-emerald-500/15"
+            className="rounded-[1.75rem] border border-primary/20 bg-gradient-to-b from-primary/[0.09] to-[#14161b] p-5"
             aria-label="Ahorro del mes"
           >
-            <p className="text-sm text-neutral-400">Ahorro del mes</p>
+            <p className="micro-label">Ahorro del mes</p>
             <p
               className={cn(
-                "pt-1 text-4xl font-semibold tabular-nums",
+                "pt-1.5 font-display text-[42px] font-semibold leading-none tabular-nums",
                 r.ahorro < 0 && "text-rose-400"
               )}
             >
@@ -282,24 +285,24 @@ export function DashboardView() {
 
           {/* ── Ingresos / Gastos / Invertido con tendencia ────────── */}
           <section className="grid grid-cols-2 gap-2.5" aria-label="Resumen del mes">
-            <div className="rounded-2xl bg-neutral-900/70 p-4">
+            <div className="card p-4">
               <p className="text-xs text-neutral-500">Ingresos</p>
-              <p className="pt-1 text-2xl font-semibold tabular-nums text-emerald-400">
+              <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-emerald-400">
                 {formatEUR(r.ingresos)}
               </p>
               <DeltaChip valor={deltaIngresos} alSubir="bueno" />
             </div>
-            <div className="rounded-2xl bg-neutral-900/70 p-4">
+            <div className="card p-4">
               <p className="text-xs text-neutral-500">Gastos</p>
-              <p className="pt-1 text-2xl font-semibold tabular-nums text-rose-400">
+              <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-rose-400">
                 {formatEUR(r.gastos)}
               </p>
               <DeltaChip valor={deltaGastos} alSubir="malo" />
             </div>
-            <div className="col-span-2 flex items-center justify-between rounded-2xl bg-neutral-900/70 p-4">
+            <div className="col-span-2 flex items-center justify-between card p-4">
               <div>
                 <p className="text-xs text-neutral-500">Invertido</p>
-                <p className="pt-1 text-2xl font-semibold tabular-nums text-sky-400">
+                <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-sky-400">
                   {formatEUR(r.invertido)}
                 </p>
               </div>
@@ -317,16 +320,16 @@ export function DashboardView() {
           {/* ── Ritmo de gasto (solo mes en curso) ─────────────────── */}
           {ritmo && r.gastos > 0 && (
             <section
-              className="rounded-2xl bg-neutral-900/70 p-4"
+              className="card p-4"
               aria-label="Ritmo de gasto"
             >
-              <h2 className="flex items-center gap-1.5 text-sm font-medium text-neutral-400">
-                <Flame className="size-4" aria-hidden /> Ritmo de gasto
+              <h2 className="micro-label flex items-center gap-1.5">
+                <Flame className="size-3.5" aria-hidden /> Ritmo de gasto
               </h2>
               <div className="grid grid-cols-2 gap-3 pt-3">
                 <div>
                   <p className="text-xs text-neutral-500">Media diaria</p>
-                  <p className="pt-0.5 text-lg font-semibold tabular-nums">
+                  <p className="pt-0.5 font-display text-lg font-semibold tabular-nums">
                     {formatEUR(Math.round(ritmo.gastoDiario))}
                   </p>
                 </div>
@@ -334,7 +337,7 @@ export function DashboardView() {
                   <p className="text-xs text-neutral-500">Proyección fin de mes</p>
                   <p
                     className={cn(
-                      "pt-0.5 text-lg font-semibold tabular-nums",
+                      "pt-0.5 font-display text-lg font-semibold tabular-nums",
                       presupuestoGlobal && ritmo.proyeccion > presupuestoGlobal.limite
                         ? "text-[#fab219]"
                         : "text-neutral-200"
@@ -375,8 +378,8 @@ export function DashboardView() {
           )}
 
           {/* ── Evolución 6 meses ──────────────────────────────────── */}
-          <section className="rounded-2xl bg-neutral-900/70 p-4" aria-label="Evolución">
-            <h2 className="text-sm font-medium text-neutral-400">
+          <section className="card p-4" aria-label="Evolución">
+            <h2 className="micro-label">
               Ingresos vs gastos · últimos 6 meses
             </h2>
             {!hayEvolucion ? (
@@ -429,8 +432,8 @@ export function DashboardView() {
           </section>
 
           {/* ── Reparto de gastos ──────────────────────────────────── */}
-          <section className="rounded-2xl bg-neutral-900/70 p-4">
-            <h2 className="text-sm font-medium text-neutral-400">Reparto de gastos</h2>
+          <section className="card p-4">
+            <h2 className="micro-label">Reparto de gastos</h2>
             {segmentos.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-10 text-center">
                 <ChartPie className="size-7 text-neutral-600" aria-hidden />
@@ -473,8 +476,8 @@ export function DashboardView() {
                     </PieChart>
                   </ChartContainer>
                   <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <p className="text-xs text-neutral-500">Total</p>
-                    <p className="text-xl font-semibold tabular-nums">
+                    <p className="micro-label">Total</p>
+                    <p className="font-display text-xl font-semibold tabular-nums">
                       {formatEUR(r.gastos)}
                     </p>
                   </div>
@@ -504,8 +507,8 @@ export function DashboardView() {
           </section>
 
           {/* ── Presupuestos por categoría ─────────────────────────── */}
-          <section className="rounded-2xl bg-neutral-900/70 p-4">
-            <h2 className="text-sm font-medium text-neutral-400">Presupuestos</h2>
+          <section className="card p-4">
+            <h2 className="micro-label">Presupuestos</h2>
             {presupuestos.length === 0 ? (
               <p className="py-6 text-center text-sm text-neutral-500">
                 No hay presupuestos definidos.{" "}
@@ -563,8 +566,8 @@ export function DashboardView() {
 
           {/* ── Top gastos del mes ─────────────────────────────────── */}
           {topGastos.length > 0 && (
-            <section className="rounded-2xl bg-neutral-900/70 p-4" aria-label="Top gastos">
-              <h2 className="text-sm font-medium text-neutral-400">
+            <section className="card p-4" aria-label="Top gastos">
+              <h2 className="micro-label">
                 Mayores gastos del mes
               </h2>
               <ul className="divide-y divide-neutral-800/60 pt-1">
