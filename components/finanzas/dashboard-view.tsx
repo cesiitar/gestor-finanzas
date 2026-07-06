@@ -9,6 +9,7 @@ import {
   TrendingUp,
   TrendingDown,
   Flame,
+  PiggyBank,
 } from "lucide-react"
 import {
   ChartContainer,
@@ -17,7 +18,13 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 import { cn } from "@/lib/utils"
-import { formatEUR, formatPct, hoyISO, formatFechaCorta } from "@/lib/finanzas/format"
+import {
+  formatEUR,
+  formatPct,
+  hoyISO,
+  formatFechaCorta,
+  partesEUR,
+} from "@/lib/finanzas/format"
 import { sumarMeses } from "@/lib/finanzas/mes"
 import { useFinanzasCtx } from "./finanzas-provider"
 import { MesSelector } from "./mes-selector"
@@ -254,33 +261,111 @@ export function DashboardView() {
         <main className="space-y-6 px-4">
           {/* ── KPI héroe: ahorro y tasa de ahorro ─────────────────── */}
           <section
-            className="rounded-[1.75rem] border border-primary/20 bg-gradient-to-b from-primary/[0.09] to-[#14161b] p-5"
             aria-label="Ahorro del mes"
+            className={cn(
+              "relative overflow-hidden rounded-[1.75rem] border p-5",
+              r.ahorro >= 0
+                ? "border-primary/25 bg-gradient-to-b from-primary/[0.10] to-[#12150c] shadow-[0_0_90px_-20px_rgba(163,230,53,0.4)]"
+                : "border-rose-500/25 bg-gradient-to-b from-rose-500/[0.08] to-[#14161b] shadow-[0_0_90px_-20px_rgba(244,63,94,0.3)]"
+            )}
           >
-            <p className="micro-label">Ahorro del mes</p>
-            <p
-              className={cn(
-                "pt-1.5 font-display text-[42px] font-semibold leading-none tabular-nums",
-                r.ahorro < 0 && "text-rose-400"
-              )}
-            >
-              {r.ahorro < 0 && "−"}
-              {formatEUR(Math.abs(r.ahorro))}
-            </p>
-            <p className="pt-1.5 text-sm">
-              {tasaAhorro !== null && estadoAhorro ? (
-                <>
-                  <span className={cn("font-medium tabular-nums", estadoAhorro.clase)}>
-                    {formatPct(tasaAhorro)} de tus ingresos
-                  </span>
-                  <span className="text-neutral-500"> · {estadoAhorro.etiqueta}</span>
-                </>
-              ) : (
-                <span className="text-neutral-500">
-                  Sin ingresos este mes, no hay tasa de ahorro.
+            {/* Retícula de fondo, desvaneciéndose hacia abajo a la derecha */}
+            <div
+              aria-hidden
+              className="absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_75%)]"
+            />
+            <div className="relative">
+              <div className="flex items-start justify-between">
+                <p className="micro-label pt-1">Ahorro del mes</p>
+                <span
+                  className={cn(
+                    "flex size-9 items-center justify-center rounded-full",
+                    r.ahorro >= 0
+                      ? "bg-primary/15 text-primary"
+                      : "bg-rose-500/15 text-rose-400"
+                  )}
+                  aria-hidden
+                >
+                  <PiggyBank className="size-[18px]" strokeWidth={2.2} />
                 </span>
+              </div>
+
+              {/* Importe con los decimales atenuados */}
+              <p
+                className={cn(
+                  "pt-2 font-display leading-none tabular-nums",
+                  r.ahorro < 0 && "text-rose-400"
+                )}
+              >
+                <span className="text-[44px] font-semibold">
+                  {r.ahorro < 0 && "−"}
+                  {partesEUR(Math.abs(r.ahorro)).entero}
+                </span>
+                <span
+                  className={cn(
+                    "text-2xl font-medium",
+                    r.ahorro < 0 ? "text-rose-400/60" : "text-neutral-500"
+                  )}
+                >
+                  {partesEUR(Math.abs(r.ahorro)).resto}
+                </span>
+              </p>
+
+              {/* Chip de tasa de ahorro + veredicto */}
+              <div className="flex items-center gap-2 pt-3">
+                {tasaAhorro !== null && estadoAhorro ? (
+                  <>
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold tabular-nums",
+                        tasaAhorro >= 0.1
+                          ? "bg-primary/15 text-primary"
+                          : tasaAhorro >= 0
+                            ? "bg-[#fab219]/15 text-[#fab219]"
+                            : "bg-rose-500/15 text-rose-400"
+                      )}
+                    >
+                      {tasaAhorro >= 0 ? (
+                        <TrendingUp className="size-3" aria-hidden />
+                      ) : (
+                        <TrendingDown className="size-3" aria-hidden />
+                      )}
+                      {formatPct(tasaAhorro)}
+                    </span>
+                    <span className="text-xs text-neutral-400">
+                      de tus ingresos · {estadoAhorro.etiqueta}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xs text-neutral-500">
+                    Sin ingresos este mes, no hay tasa de ahorro.
+                  </span>
+                )}
+              </div>
+
+              {/* Progreso hacia el objetivo del 20% de tasa de ahorro */}
+              {tasaAhorro !== null && tasaAhorro >= 0 && (
+                <div className="pt-4">
+                  <div
+                    role="progressbar"
+                    aria-valuenow={Math.round(Math.min(tasaAhorro / 0.2, 1) * 100)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label="Progreso hacia el objetivo de ahorro del 20%"
+                    className="h-1.5 overflow-hidden rounded-full bg-white/[0.07]"
+                  >
+                    <div
+                      className="h-full rounded-full bg-primary shadow-[0_0_10px_rgba(163,230,53,0.6)] transition-[width] duration-500"
+                      style={{ width: `${Math.min(tasaAhorro / 0.2, 1) * 100}%` }}
+                    />
+                  </div>
+                  <p className="pt-1.5 text-right text-[11px] tabular-nums text-neutral-500">
+                    {formatPct(Math.min(tasaAhorro / 0.2, 1))} del objetivo (ahorrar el
+                    20%)
+                  </p>
+                </div>
               )}
-            </p>
+            </div>
           </section>
 
           {/* ── Ingresos / Gastos / Invertido con tendencia ────────── */}

@@ -9,7 +9,12 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
-import { formatEUR, formatPct, parseImporteToCents } from "@/lib/finanzas/format"
+import {
+  formatEUR,
+  formatPct,
+  parseImporteToCents,
+  partesEUR,
+} from "@/lib/finanzas/format"
 import { useFinanzasCtx } from "./finanzas-provider"
 import { MovimientosList } from "./movimientos-list"
 import type { Posicion } from "@/lib/finanzas/types"
@@ -79,10 +84,21 @@ export function InversionesView() {
 
       <main className="space-y-6 px-4">
         {/* KPIs de cartera */}
-        <section className="rounded-[1.75rem] border border-sky-500/20 bg-gradient-to-b from-sky-500/[0.09] to-[#14161b] p-5">
+        <section className="relative overflow-hidden rounded-[1.75rem] border border-sky-500/25 bg-gradient-to-b from-sky-500/[0.09] to-[#0d1319] p-5 shadow-[0_0_90px_-20px_rgba(56,189,248,0.35)]">
+          {/* Retícula de fondo */}
+          <div
+            aria-hidden
+            className="absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_75%)]"
+          />
+          <div className="relative">
           <p className="micro-label">Valor de la cartera</p>
-          <p className="pt-1.5 font-display text-[42px] font-semibold leading-none tabular-nums">
-            {formatEUR(valorCartera)}
+          <p className="pt-2 font-display leading-none tabular-nums">
+            <span className="text-[44px] font-semibold">
+              {partesEUR(valorCartera).entero}
+            </span>
+            <span className="text-2xl font-medium text-neutral-500">
+              {partesEUR(valorCartera).resto}
+            </span>
           </p>
           <p className={cn("pt-1.5 text-sm font-medium tabular-nums", colorGanancia(ganancia))}>
             {eurConSigno(ganancia)} · {formatPct(rentabilidad, true)}
@@ -91,6 +107,7 @@ export function InversionesView() {
             Invertido en total: <span className="tabular-nums">{formatEUR(invertidoTotal)}</span>
             {invertidoTotal > aportadoVinculado && " (incluye aportaciones sin posición)"}
           </p>
+          </div>
         </section>
 
         {/* Posiciones */}

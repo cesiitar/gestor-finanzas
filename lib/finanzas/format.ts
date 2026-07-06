@@ -36,6 +36,18 @@ export function parseImporteToCents(input: string): number | null {
   return Math.round(valor * 100)
 }
 
+/**
+ * Parte un importe formateado para pintar los decimales atenuados:
+ * 123456 → { entero: "1.234", resto: ",56 €" }
+ */
+export function partesEUR(cents: number): { entero: string; resto: string } {
+  const f = eurFormatter.format(cents / 100)
+  const i = f.indexOf(",")
+  return i === -1
+    ? { entero: f, resto: "" }
+    : { entero: f.slice(0, i), resto: f.slice(i) }
+}
+
 /** 0.0834 → "8,3 %" (con signo si se pide) */
 export function formatPct(ratio: number, conSigno = false): string {
   const pct = new Intl.NumberFormat("es-ES", {
