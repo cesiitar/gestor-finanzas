@@ -175,6 +175,29 @@ body::before {
     radial-gradient(ellipse 70% 55% at 20% -10%, var(--glow-color, rgba(163, 230, 53, 0.09)), transparent 70%);
 }
 
+/* Keyframes del fondo aurora (components/ui/aurora-background.tsx) */
+@keyframes aurora {
+  from {
+    background-position:
+      50% 50%,
+      50% 50%;
+  }
+  to {
+    background-position:
+      350% 50%,
+      350% 50%;
+  }
+}
+@utility animate-aurora {
+  animation: aurora 60s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora,
+  .animate-aurora::after {
+    animation: none;
+  }
+}
+
 /* Keyframes requeridos por components/ui/cosmic-button.tsx (Cult UI) */
 @keyframes cosmic-spin {
   from { transform: rotate(0deg); }

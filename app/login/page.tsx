@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { AuroraBackground } from "@/components/ui/aurora-background"
 import { createClient } from "@/lib/supabase/client"
 
 /** Las tres barras del icono de la app, como marca */
@@ -42,10 +43,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-background p-6">
-      <div className="page-glow" aria-hidden />
-
-      <div className="relative w-full max-w-sm space-y-8">
+    <AuroraBackground className="items-center justify-center overflow-hidden p-6">
+      <main className="relative w-full max-w-sm space-y-8">
         <div className="flex flex-col items-center gap-4 text-center">
           <LogoBarras />
           <div>
@@ -91,7 +90,7 @@ export default function LoginPage() {
             )}
           </form>
         )}
-      </div>
-    </main>
+      </main>
+    </AuroraBackground>
   )
 }
