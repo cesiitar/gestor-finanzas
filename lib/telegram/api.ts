@@ -3,7 +3,8 @@
  * Docs: https://core.telegram.org/bots/api
  */
 
-const BASE = () => `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}`
+const BASE = () =>
+  `https://api.telegram.org/bot${(process.env.TELEGRAM_BOT_TOKEN ?? "").trim()}`
 
 /** Botón inline (los botoncitos bajo un mensaje) */
 export interface BotonInline {

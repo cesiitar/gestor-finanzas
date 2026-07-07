@@ -9,7 +9,9 @@ import { parsearMovimiento, sugerirCategoria, CATEGORIA_FALLBACK } from "./parse
  * así que SIEMPRE se filtra/inserta con el user_id del dueño (BOT_USER_ID).
  */
 
-const USER_ID = () => process.env.BOT_USER_ID!
+// .trim() en todas las env vars: un espacio/tab colado al pegarlas en Vercel
+// no puede volver a romper el bot en silencio
+const USER_ID = () => (process.env.BOT_USER_ID ?? "").trim()
 
 const EMOJI_TIPO: Record<TipoMovimiento, string> = {
   gasto: "🔴",
@@ -47,7 +49,7 @@ interface TgUpdate {
 // Entrada principal
 // ---------------------------------------------------------------------------
 export async function manejarUpdate(update: TgUpdate) {
-  const chatPermitido = process.env.TELEGRAM_CHAT_ID!
+  const chatPermitido = (process.env.TELEGRAM_CHAT_ID ?? "").trim()
 
   if (update.callback_query) {
     const cb = update.callback_query

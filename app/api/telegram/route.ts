@@ -12,7 +12,7 @@ import { manejarUpdate } from "@/lib/telegram/handler"
  */
 export async function POST(req: NextRequest) {
   const secreto = req.headers.get("x-telegram-bot-api-secret-token")
-  if (!secreto || secreto !== process.env.TELEGRAM_WEBHOOK_SECRET) {
+  if (!secreto || secreto !== (process.env.TELEGRAM_WEBHOOK_SECRET ?? "").trim()) {
     return new Response("unauthorized", { status: 401 })
   }
 
