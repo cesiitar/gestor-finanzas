@@ -63,7 +63,13 @@ export async function manejarUpdate(update: TgUpdate) {
   const msg = update.message
   if (!msg?.text) return
   // Allowlist: mensajes de desconocidos se ignoran en silencio
-  if (String(msg.chat.id) !== chatPermitido) return
+  if (String(msg.chat.id) !== chatPermitido) {
+    // Log de diagnóstico: permite ver en Vercel qué chat llegó vs el permitido
+    console.warn(
+      `Chat no permitido: llego "${msg.chat.id}", esperado "${chatPermitido}"`
+    )
+    return
+  }
 
   await manejarTexto(msg.chat.id, msg.text.trim())
 }
