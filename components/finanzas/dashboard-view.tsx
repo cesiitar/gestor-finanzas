@@ -123,6 +123,15 @@ export function DashboardView() {
   const r = useMemo(() => resumenDe(delMes), [delMes])
   const rPrev = useMemo(() => resumenDe(delMesAnterior), [delMesAnterior])
 
+  /** Parte del gasto del mes que vino de gastos fijos automáticos */
+  const gastosFijosMes = useMemo(
+    () =>
+      delMes
+        .filter((m) => m.tipo === "gasto" && m.gasto_fijo_id)
+        .reduce((s, m) => s + m.importe_cents, 0),
+    [delMes]
+  )
+
   // ---- KPIs derivados ----
   const tasaAhorro = r.ingresos > 0 ? r.ahorro / r.ingresos : null
   const tasaInversion = r.ingresos > 0 ? r.invertido / r.ingresos : null
@@ -383,6 +392,12 @@ export function DashboardView() {
                 {formatEUR(r.gastos)}
               </p>
               <DeltaChip valor={deltaGastos} alSubir="malo" />
+              {gastosFijosMes > 0 && (
+                <p className="pt-1.5 text-[11px] tabular-nums text-neutral-500">
+                  Fijos {formatEUR(gastosFijosMes)} · Variables{" "}
+                  {formatEUR(r.gastos - gastosFijosMes)}
+                </p>
+              )}
             </div>
             <div className="col-span-2 flex items-center justify-between card p-4">
               <div>

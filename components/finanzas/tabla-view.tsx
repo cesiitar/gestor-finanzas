@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Download, ArrowUp, ArrowDown, Table2 } from "lucide-react"
+import { Download, ArrowUp, ArrowDown, Table2, Search } from "lucide-react"
 import {
   Drawer,
   DrawerContent,
@@ -40,11 +40,18 @@ export function TablaView() {
     asc: false,
   })
   const [exportAbierto, setExportAbierto] = useState(false)
+  const [busqueda, setBusqueda] = useState("")
 
-  const delMes = useMemo(
-    () => movimientos.filter((m) => m.fecha.startsWith(mes)),
-    [movimientos, mes]
-  )
+  const delMes = useMemo(() => {
+    const base = movimientos.filter((m) => m.fecha.startsWith(mes))
+    const q = busqueda.trim().toLowerCase()
+    if (!q) return base
+    return base.filter(
+      (m) =>
+        m.concepto.toLowerCase().includes(q) ||
+        (categoriasById.get(m.categoria_id)?.nombre.toLowerCase() ?? "").includes(q)
+    )
+  }, [movimientos, mes, busqueda, categoriasById])
 
   const ordenados = useMemo(() => {
     const valor = (m: Movimiento): string | number => {
@@ -134,6 +141,28 @@ export function TablaView() {
       </header>
 
       <MesSelector mes={mes} onChange={setMes} />
+
+      {/* Búsqueda por concepto o categoría dentro del mes */}
+      <div className="px-4 pb-2">
+        <label className="flex h-10 items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.02] px-3.5">
+          <Search className="size-4 shrink-0 text-neutral-500" aria-hidden />
+          <input
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar concepto o categoría…"
+            aria-label="Buscar movimientos"
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-600"
+          />
+          {busqueda && (
+            <button
+              onClick={() => setBusqueda("")}
+              className="text-xs text-neutral-500 hover:text-neutral-200 cursor-pointer"
+            >
+              Limpiar
+            </button>
+          )}
+        </label>
+      </div>
 
       <main className="px-2">
         {cargando ? (

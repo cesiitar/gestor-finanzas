@@ -169,9 +169,35 @@ async function registrarMovimiento(
     return
   }
 
+  // Alerta de presupuesto: solo cuando ESTE gasto cruza el 80% o el 100%
+  let alerta = ""
+  if (p.tipo === "gasto" && categoria.presupuesto_mensual_cents != null) {
+    const mes = hoyISO().slice(0, 7)
+    const { data: movsCat } = await supabase
+      .from("movimientos")
+      .select("importe_cents")
+      .eq("user_id", USER_ID())
+      .eq("categoria_id", categoria.id)
+      .gte("fecha", `${mes}-01`)
+    const total = ((movsCat ?? []) as { importe_cents: number }[]).reduce(
+      (s, m) => s + m.importe_cents,
+      0
+    )
+    const limite = categoria.presupuesto_mensual_cents
+    if (limite > 0) {
+      const antes = (total - p.importeCents) / limite
+      const despues = total / limite
+      if (antes < 1 && despues >= 1) {
+        alerta = `\n\n🚨 <b>Presupuesto de ${categoria.nombre} superado</b>: ${formatEUR(total)} de ${formatEUR(limite)}`
+      } else if (antes < 0.8 && despues >= 0.8) {
+        alerta = `\n\n⚠️ ${categoria.nombre} al ${Math.round(despues * 100)}% del presupuesto (${formatEUR(total)} de ${formatEUR(limite)})`
+      }
+    }
+  }
+
   await enviarMensaje(
     chatId,
-    textoConfirmacion(mov as Movimiento, categoria.nombre),
+    textoConfirmacion(mov as Movimiento, categoria.nombre) + alerta,
     botonesMovimiento(mov as Movimiento, delTipo, categoria.id)
   )
 }

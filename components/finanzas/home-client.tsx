@@ -7,7 +7,8 @@ import { Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useFinanzasCtx } from "./finanzas-provider"
 import { MovimientosList } from "./movimientos-list"
-import type { TipoMovimiento } from "@/lib/finanzas/types"
+import { EditarMovimientoDrawer } from "./editar-movimiento-drawer"
+import type { Movimiento, TipoMovimiento } from "@/lib/finanzas/types"
 
 const FILTROS: { valor: TipoMovimiento | "todos"; etiqueta: string }[] = [
   { valor: "todos", etiqueta: "Todos" },
@@ -20,6 +21,7 @@ const FILTROS: { valor: TipoMovimiento | "todos"; etiqueta: string }[] = [
 export function HomeClient() {
   const { categoriasById, movimientos, cargando, abrirRegistro } = useFinanzasCtx()
   const [filtro, setFiltro] = useState<TipoMovimiento | "todos">("todos")
+  const [editando, setEditando] = useState<Movimiento | null>(null)
   const searchParams = useSearchParams()
 
   // Acceso directo del icono de la PWA: /?add=1 abre el registro al entrar
@@ -84,8 +86,14 @@ export function HomeClient() {
           movimientos={visibles}
           categoriasById={categoriasById}
           cargando={cargando}
+          onSelect={setEditando}
         />
       </main>
+
+      <EditarMovimientoDrawer
+        movimiento={editando}
+        onOpenChange={(open) => !open && setEditando(null)}
+      />
     </>
   )
 }

@@ -6,9 +6,11 @@ import { createClient } from "@/lib/supabase/client"
 import { CATEGORIAS_DEFAULT } from "@/lib/finanzas/categorias-default"
 import type {
   Categoria,
+  GastoFijo,
   Movimiento,
   NuevoMovimiento,
   Posicion,
+  TipoMovimiento,
 } from "@/lib/finanzas/types"
 
 /** Orden de la lista: fecha más reciente primero; a igual fecha, lo último registrado arriba */
@@ -30,6 +32,7 @@ export function useFinanzas() {
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [movimientos, setMovimientos] = useState<Movimiento[]>([])
   const [posiciones, setPosiciones] = useState<Posicion[]>([])
+  const [gastosFijos, setGastosFijos] = useState<GastoFijo[]>([])
   const [cargando, setCargando] = useState(true)
 
   useEffect(() => {
@@ -95,10 +98,22 @@ export function useFinanzas() {
         })
       }
 
+      // 4. Gastos fijos
+      const { data: fijos, error: errorFijos } = await supabase
+        .from("gastos_fijos")
+        .select("*")
+        .order("dia_mes")
+
+      // Si la tabla aún no existe (migración sin ejecutar), no rompemos la app
+      if (errorFijos && !cancelado) {
+        console.warn("gastos_fijos no disponible:", errorFijos.message)
+      }
+
       if (!cancelado) {
         setCategorias(categoriasFinal)
         setMovimientos(movs ?? [])
         setPosiciones(pos ?? [])
+        setGastosFijos(fijos ?? [])
         setCargando(false)
       }
     }
@@ -218,6 +233,167 @@ export function useFinanzas() {
     [supabase]
   )
 
+  // ---- Editar / borrar movimientos (optimista con rollback) ----
+  const updateMovimiento = useCallback(
+    async (id: string, cambios: Partial<NuevoMovimiento>) => {
+      let anterior: Movimiento[] = []
+      setMovimientos((prev) => {
+        anterior = prev
+        return ordenarMovimientos(
+          prev.map((m) => (m.id === id ? { ...m, ...cambios } : m))
+        )
+      })
+      const { error } = await supabase.from("movimientos").update(cambios).eq("id", id)
+      if (error) {
+        setMovimientos(anterior)
+        toast.error("No se pudo guardar el cambio", { description: error.message })
+      }
+    },
+    [supabase]
+  )
+
+  const deleteMovimiento = useCallback(
+    async (id: string) => {
+      let anterior: Movimiento[] = []
+      setMovimientos((prev) => {
+        anterior = prev
+        return prev.filter((m) => m.id !== id)
+      })
+      const { error } = await supabase.from("movimientos").delete().eq("id", id)
+      if (error) {
+        setMovimientos(anterior)
+        toast.error("No se pudo borrar", { description: error.message })
+      }
+    },
+    [supabase]
+  )
+
+  // ---- Gastos fijos ----
+  const addGastoFijo = useCallback(
+    async (fijo: Pick<GastoFijo, "nombre" | "categoria_id" | "importe_cents" | "dia_mes">) => {
+      const { data, error } = await supabase
+        .from("gastos_fijos")
+        .insert(fijo)
+        .select("*")
+        .single()
+      if (error) {
+        toast.error("No se pudo crear el gasto fijo", { description: error.message })
+        return
+      }
+      setGastosFijos((prev) =>
+        [...prev, data as GastoFijo].sort((a, b) => a.dia_mes - b.dia_mes)
+      )
+    },
+    [supabase]
+  )
+
+  const updateGastoFijo = useCallback(
+    async (id: string, cambios: Partial<GastoFijo>) => {
+      let anterior: GastoFijo[] = []
+      setGastosFijos((prev) => {
+        anterior = prev
+        return prev
+          .map((f) => (f.id === id ? { ...f, ...cambios } : f))
+          .sort((a, b) => a.dia_mes - b.dia_mes)
+      })
+      const { error } = await supabase.from("gastos_fijos").update(cambios).eq("id", id)
+      if (error) {
+        setGastosFijos(anterior)
+        toast.error("No se pudo guardar el gasto fijo", { description: error.message })
+      }
+    },
+    [supabase]
+  )
+
+  const deleteGastoFijo = useCallback(
+    async (id: string) => {
+      let anterior: GastoFijo[] = []
+      setGastosFijos((prev) => {
+        anterior = prev
+        return prev.filter((f) => f.id !== id)
+      })
+      const { error } = await supabase.from("gastos_fijos").delete().eq("id", id)
+      if (error) {
+        setGastosFijos(anterior)
+        toast.error("No se pudo borrar el gasto fijo", { description: error.message })
+      }
+    },
+    [supabase]
+  )
+
+  // ---- Categorías ----
+  const addCategoria = useCallback(
+    async (nombre: string, tipo: TipoMovimiento) => {
+      const { data, error } = await supabase
+        .from("categorias")
+        .insert({ nombre, tipo })
+        .select("*")
+        .single()
+      if (error) {
+        toast.error("No se pudo crear la categoría", { description: error.message })
+        return
+      }
+      setCategorias((prev) => [...prev, data as Categoria])
+    },
+    [supabase]
+  )
+
+  const renombrarCategoria = useCallback(
+    async (id: string, nombre: string) => {
+      let anterior: Categoria[] = []
+      setCategorias((prev) => {
+        anterior = prev
+        return prev.map((c) => (c.id === id ? { ...c, nombre } : c))
+      })
+      const { error } = await supabase.from("categorias").update({ nombre }).eq("id", id)
+      if (error) {
+        setCategorias(anterior)
+        toast.error("No se pudo renombrar", { description: error.message })
+      }
+    },
+    [supabase]
+  )
+
+  /**
+   * Borra una categoría. Si tiene movimientos o gastos fijos, hay que pasar
+   * `reasignarA` (otra categoría del mismo tipo): primero se reasignan y
+   * después se borra — nunca borrado en cascada silencioso.
+   */
+  const borrarCategoria = useCallback(
+    async (id: string, reasignarA?: string) => {
+      if (reasignarA) {
+        const { error: e1 } = await supabase
+          .from("movimientos")
+          .update({ categoria_id: reasignarA })
+          .eq("categoria_id", id)
+        const { error: e2 } = await supabase
+          .from("gastos_fijos")
+          .update({ categoria_id: reasignarA })
+          .eq("categoria_id", id)
+        if (e1 || e2) {
+          toast.error("No se pudieron reasignar los movimientos", {
+            description: (e1 ?? e2)?.message,
+          })
+          return false
+        }
+        setMovimientos((prev) =>
+          prev.map((m) => (m.categoria_id === id ? { ...m, categoria_id: reasignarA } : m))
+        )
+        setGastosFijos((prev) =>
+          prev.map((f) => (f.categoria_id === id ? { ...f, categoria_id: reasignarA } : f))
+        )
+      }
+      const { error } = await supabase.from("categorias").delete().eq("id", id)
+      if (error) {
+        toast.error("No se pudo borrar la categoría", { description: error.message })
+        return false
+      }
+      setCategorias((prev) => prev.filter((c) => c.id !== id))
+      return true
+    },
+    [supabase]
+  )
+
   const categoriasById = useMemo(
     () => new Map(categorias.map((c) => [c.id, c])),
     [categorias]
@@ -228,10 +404,19 @@ export function useFinanzas() {
     categoriasById,
     movimientos,
     posiciones,
+    gastosFijos,
     cargando,
     addMovimiento,
+    updateMovimiento,
+    deleteMovimiento,
     addPosicion,
     setValorPosicion,
     setPresupuestoCategoria,
+    addGastoFijo,
+    updateGastoFijo,
+    deleteGastoFijo,
+    addCategoria,
+    renombrarCategoria,
+    borrarCategoria,
   }
 }

@@ -25,6 +25,21 @@ export interface Movimiento {
   /** Importe en céntimos, entero y siempre positivo; el signo lo da el tipo */
   importe_cents: number
   posicion_id: string | null
+  /** Si el movimiento lo generó un gasto fijo, referencia a su origen */
+  gasto_fijo_id?: string | null
+  created_at: string
+}
+
+/** Gasto que se repite igual todos los meses; el cron lo registra solo */
+export interface GastoFijo {
+  id: string
+  user_id: string
+  nombre: string
+  categoria_id: string
+  importe_cents: number
+  /** Día del mes en que se carga (1-31, ajustado en meses cortos) */
+  dia_mes: number
+  activo: boolean
   created_at: string
 }
 

@@ -13,9 +13,11 @@ interface Props {
   movimientos: Movimiento[]
   categoriasById: Map<string, Categoria>
   cargando: boolean
+  /** Si se pasa, cada fila es tocable (p. ej. para editar el movimiento) */
+  onSelect?: (mov: Movimiento) => void
 }
 
-export function MovimientosList({ movimientos, categoriasById, cargando }: Props) {
+export function MovimientosList({ movimientos, categoriasById, cargando, onSelect }: Props) {
   if (cargando) {
     return (
       <div className="card divide-y divide-white/[0.04] overflow-hidden" aria-busy>
@@ -55,7 +57,20 @@ export function MovimientosList({ movimientos, categoriasById, cargando }: Props
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ type: "spring", stiffness: 500, damping: 40 }}
-              className="flex items-center gap-3 px-4 py-3"
+              onClick={onSelect ? () => onSelect(mov) : undefined}
+              role={onSelect ? "button" : undefined}
+              tabIndex={onSelect ? 0 : undefined}
+              onKeyDown={
+                onSelect
+                  ? (e) => {
+                      if (e.key === "Enter" || e.key === " ") onSelect(mov)
+                    }
+                  : undefined
+              }
+              className={cn(
+                "flex items-center gap-3 px-4 py-3",
+                onSelect && "cursor-pointer transition-colors hover:bg-white/[0.03]"
+              )}
             >
               <span
                 className={cn(
