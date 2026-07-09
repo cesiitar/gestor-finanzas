@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: "#0b0c0f",
   width: "device-width",
   initialScale: 1,
   // La app es mobile-first tipo nativa: viewport-fit para respetar el notch

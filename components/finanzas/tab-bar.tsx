@@ -52,7 +52,7 @@ export function TabBar({ onAdd }: { onAdd: () => void }) {
               )}
             >
               <tab.Icono className="size-5" strokeWidth={activa ? 2.4 : 2} aria-hidden />
-              <span className="text-[9px] font-medium tracking-wide">
+              <span className="text-[10px] font-medium tracking-wide">
                 {tab.etiqueta}
               </span>
               {activa && (

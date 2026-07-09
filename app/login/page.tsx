@@ -2,18 +2,8 @@
 
 import { useState } from "react"
 import { AuroraBackground } from "@/components/ui/aurora-background"
+import { LogoBarras } from "@/components/ui/logo-barras"
 import { createClient } from "@/lib/supabase/client"
-
-/** Las tres barras del icono de la app, como marca */
-function LogoBarras() {
-  return (
-    <svg width="44" height="44" viewBox="0 0 512 512" aria-hidden>
-      <rect x="164" y="226" width="44" height="130" rx="22" fill="#fb7185" />
-      <rect x="236" y="166" width="44" height="190" rx="22" fill="#34d399" />
-      <rect x="308" y="106" width="44" height="250" rx="22" fill="#38bdf8" />
-    </svg>
-  )
-}
 
 /**
  * Login por magic link: se escribe el email y Supabase manda un enlace.

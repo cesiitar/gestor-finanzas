@@ -610,16 +610,18 @@ export function DashboardView() {
           <section className="card p-4">
             <h2 className="micro-label">Presupuestos</h2>
             {presupuestos.length === 0 ? (
-              <p className="py-6 text-center text-sm text-neutral-500">
-                No hay presupuestos definidos.{" "}
+              <div className="flex flex-col items-center gap-3 py-6 text-center">
+                <p className="text-sm text-neutral-500">
+                  Ponle un límite mensual a tus categorías
+                  <br />y aquí verás cómo vas.
+                </p>
                 <Link
                   href="/ajustes"
-                  className="text-neutral-300 underline underline-offset-2"
+                  className="flex h-9 items-center rounded-full border border-primary/40 bg-primary/10 px-4 text-sm font-medium text-primary transition-colors hover:bg-primary/15"
                 >
-                  Ponlos en Ajustes
+                  Definir presupuestos
                 </Link>
-                .
-              </p>
+              </div>
             ) : (
               <ul className="space-y-4 pt-3">
                 {presupuestos.map(({ cat, gastado, limite, ratio }) => {

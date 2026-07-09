@@ -140,6 +140,7 @@ export function HomeClient() {
           categoriasById={categoriasById}
           cargando={cargando}
           onSelect={setEditando}
+          onAdd={abrirRegistro}
         />
       </main>
 
