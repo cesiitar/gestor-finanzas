@@ -3,6 +3,7 @@ import { formatEUR, hoyISO } from "@/lib/finanzas/format"
 import type { Categoria, Movimiento, TipoMovimiento } from "@/lib/finanzas/types"
 import { enviarMensaje, editarMensaje, responderCallback, type BotonInline } from "./api"
 import { parsearMovimiento, sugerirCategoria, CATEGORIA_FALLBACK } from "./parser"
+import { interpretarMovimientoIA } from "./nlu"
 
 /**
  * Lógica del bot. Todo lee/escribe con el cliente admin (se salta RLS),
@@ -104,16 +105,46 @@ async function manejarTexto(chatId: number, texto: string) {
     return
   }
 
-  // Si no es un comando, intentamos registrarlo como movimiento
+  // Si no es un comando, intentamos registrarlo como movimiento:
+  // 1º el parser de reglas (gratis e instantáneo para "12,50 cena mercadona")
   const parseado = parsearMovimiento(texto)
-  if (!parseado) {
-    await enviarMensaje(
+  if (parseado) {
+    await registrarMovimiento(chatId, parseado)
+    return
+  }
+
+  // 2º la IA (Haiku) para lenguaje natural: "ayer me dejé 30 pavos cenando"
+  const supabase = createAdminClient()
+  const { data: cats } = await supabase
+    .from("categorias")
+    .select("*")
+    .eq("user_id", USER_ID())
+    .order("created_at")
+
+  const ia =
+    cats && cats.length > 0
+      ? await interpretarMovimientoIA(texto, cats as Categoria[])
+      : null
+
+  if (ia) {
+    await registrarMovimiento(
       chatId,
-      "No te he entendido 🤔\nPara registrar: <code>12,50 cena mercadona</code>\nEscribe <b>ayuda</b> para ver todo lo que sé hacer."
+      {
+        tipo: ia.tipo,
+        importeCents: ia.importeCents,
+        concepto: ia.concepto,
+        fecha: ia.fecha,
+        categoriaNombre: ia.categoriaNombre ?? undefined,
+      },
+      "🤖 "
     )
     return
   }
-  await registrarMovimiento(chatId, parseado)
+
+  await enviarMensaje(
+    chatId,
+    "No te he entendido 🤔\nPara registrar: <code>12,50 cena mercadona</code>\nEscribe <b>ayuda</b> para ver todo lo que sé hacer."
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -121,7 +152,16 @@ async function manejarTexto(chatId: number, texto: string) {
 // ---------------------------------------------------------------------------
 async function registrarMovimiento(
   chatId: number,
-  p: { tipo: TipoMovimiento; importeCents: number; concepto: string }
+  p: {
+    tipo: TipoMovimiento
+    importeCents: number
+    concepto: string
+    /** YYYY-MM-DD; por defecto hoy */
+    fecha?: string
+    /** Nombre de categoría ya elegido (p. ej. por la IA); tiene prioridad */
+    categoriaNombre?: string
+  },
+  prefijo = ""
 ) {
   const supabase = createAdminClient()
 
@@ -137,9 +177,13 @@ async function registrarMovimiento(
 
   const delTipo = (categorias as Categoria[]).filter((c) => c.tipo === p.tipo)
 
-  // Elegir categoría: pista por keywords → fallback del tipo → la primera
+  // Elegir categoría: nombre explícito (IA) → keywords → fallback del tipo → la primera
   const sugerida = sugerirCategoria(p.concepto)
   const categoria =
+    (p.categoriaNombre &&
+      delTipo.find(
+        (c) => c.nombre.toLowerCase() === p.categoriaNombre!.toLowerCase()
+      )) ||
     (sugerida && delTipo.find((c) => c.nombre.toLowerCase() === sugerida.toLowerCase())) ||
     delTipo.find(
       (c) => c.nombre.toLowerCase() === CATEGORIA_FALLBACK[p.tipo].toLowerCase()
@@ -155,7 +199,7 @@ async function registrarMovimiento(
     .from("movimientos")
     .insert({
       user_id: USER_ID(),
-      fecha: hoyISO(),
+      fecha: p.fecha ?? hoyISO(),
       tipo: p.tipo,
       categoria_id: categoria.id,
       concepto: p.concepto,
@@ -197,15 +241,17 @@ async function registrarMovimiento(
 
   await enviarMensaje(
     chatId,
-    textoConfirmacion(mov as Movimiento, categoria.nombre) + alerta,
+    prefijo + textoConfirmacion(mov as Movimiento, categoria.nombre) + alerta,
     botonesMovimiento(mov as Movimiento, delTipo, categoria.id)
   )
 }
 
 function textoConfirmacion(mov: Movimiento, nombreCategoria: string): string {
+  // Si el movimiento no es de hoy (p. ej. "ayer..."), se muestra la fecha
+  const fecha = mov.fecha !== hoyISO() ? ` · ${mov.fecha.slice(8, 10)}/${mov.fecha.slice(5, 7)}` : ""
   const partes = [
     `${EMOJI_TIPO[mov.tipo]} <b>${NOMBRE_TIPO[mov.tipo]}</b>  ${formatEUR(mov.importe_cents)}`,
-    `${nombreCategoria}${mov.concepto ? ` · ${mov.concepto}` : ""}`,
+    `${nombreCategoria}${mov.concepto ? ` · ${mov.concepto}` : ""}${fecha}`,
   ]
   return partes.join("\n")
 }
