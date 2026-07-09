@@ -13,7 +13,10 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code")
   const tokenHash = searchParams.get("token_hash")
   const type = searchParams.get("type") as EmailOtpType | null
-  const next = searchParams.get("next") ?? "/"
+  // Anti open-redirect: solo rutas internas ("/algo"), nunca "//" ni URLs
+  const nextParam = searchParams.get("next") ?? "/"
+  const next =
+    nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/"
 
   const supabase = await createClient()
 

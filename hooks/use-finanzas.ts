@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { CATEGORIAS_DEFAULT } from "@/lib/finanzas/categorias-default"
+import { formatEUR } from "@/lib/finanzas/format"
 import type {
   Categoria,
   GastoFijo,
@@ -35,10 +36,8 @@ export function useFinanzas() {
   const [gastosFijos, setGastosFijos] = useState<GastoFijo[]>([])
   const [cargando, setCargando] = useState(true)
 
-  useEffect(() => {
-    let cancelado = false
-
-    async function cargar() {
+  const cargar = useCallback(
+    async (silencioso = false) => {
       // 1. Categorías (si el usuario no tiene ninguna, se siembran las de serie)
       const { data: cats, error: errorCats } = await supabase
         .from("categorias")
@@ -46,12 +45,12 @@ export function useFinanzas() {
         .order("created_at")
 
       if (errorCats) {
-        if (!cancelado) {
+        if (!silencioso) {
           toast.error("No se pudieron cargar las categorías", {
             description: errorCats.message,
           })
-          setCargando(false)
         }
+        setCargando(false)
         return
       }
 
@@ -63,7 +62,7 @@ export function useFinanzas() {
           .insert(CATEGORIAS_DEFAULT)
           .select("*")
         if (errorSeed) {
-          if (!cancelado)
+          if (!silencioso)
             toast.error("No se pudieron crear las categorías iniciales", {
               description: errorSeed.message,
             })
@@ -80,7 +79,7 @@ export function useFinanzas() {
         .order("fecha", { ascending: false })
         .order("created_at", { ascending: false })
 
-      if (errorMovs && !cancelado) {
+      if (errorMovs && !silencioso) {
         toast.error("No se pudieron cargar los movimientos", {
           description: errorMovs.message,
         })
@@ -92,7 +91,7 @@ export function useFinanzas() {
         .select("*")
         .order("created_at")
 
-      if (errorPos && !cancelado) {
+      if (errorPos && !silencioso) {
         toast.error("No se pudieron cargar las posiciones", {
           description: errorPos.message,
         })
@@ -105,24 +104,43 @@ export function useFinanzas() {
         .order("dia_mes")
 
       // Si la tabla aún no existe (migración sin ejecutar), no rompemos la app
-      if (errorFijos && !cancelado) {
+      if (errorFijos) {
         console.warn("gastos_fijos no disponible:", errorFijos.message)
       }
 
-      if (!cancelado) {
-        setCategorias(categoriasFinal)
-        setMovimientos(movs ?? [])
-        setPosiciones(pos ?? [])
-        setGastosFijos(fijos ?? [])
-        setCargando(false)
-      }
-    }
+      setCategorias(categoriasFinal)
+      setMovimientos(movs ?? [])
+      setPosiciones(pos ?? [])
+      setGastosFijos(fijos ?? [])
+      setCargando(false)
+    },
+    [supabase]
+  )
 
+  // Carga inicial
+  useEffect(() => {
     cargar()
-    return () => {
-      cancelado = true
+  }, [cargar])
+
+  // Refresco al volver a la app: la PWA instalada no tiene botón de recargar,
+  // y lo registrado por el bot debe aparecer sin matar la app. Al recuperar
+  // visibilidad/foco tras >15s, se recargan los datos en silencio.
+  useEffect(() => {
+    let ultimaCarga = Date.now()
+    const alVolver = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible")
+        return
+      if (Date.now() - ultimaCarga < 15_000) return
+      ultimaCarga = Date.now()
+      cargar(true)
     }
-  }, [supabase])
+    document.addEventListener("visibilitychange", alVolver)
+    window.addEventListener("focus", alVolver)
+    return () => {
+      document.removeEventListener("visibilitychange", alVolver)
+      window.removeEventListener("focus", alVolver)
+    }
+  }, [cargar])
 
   const addMovimiento = useCallback(
     async (nuevo: NuevoMovimiento) => {
@@ -157,6 +175,12 @@ export function useFinanzas() {
       setMovimientos((prev) =>
         ordenarMovimientos(prev.map((m) => (m.id === tempId ? data : m)))
       )
+
+      // Confirmación visible desde cualquier pestaña (la animación de la
+      // lista solo se ve desde Inicio)
+      toast.success(`Guardado · ${formatEUR(nuevo.importe_cents)}`, {
+        duration: 2000,
+      })
     },
     [supabase]
   )

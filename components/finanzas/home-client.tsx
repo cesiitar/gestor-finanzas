@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formatEUR, hoyISO } from "@/lib/finanzas/format"
 import { useFinanzasCtx } from "./finanzas-provider"
 import { MovimientosList } from "./movimientos-list"
 import { EditarMovimientoDrawer } from "./editar-movimiento-drawer"
@@ -19,7 +20,8 @@ const FILTROS: { valor: TipoMovimiento | "todos"; etiqueta: string }[] = [
 
 /** Home / Registro: últimos movimientos con filtro por tipo */
 export function HomeClient() {
-  const { categoriasById, movimientos, cargando, abrirRegistro } = useFinanzasCtx()
+  const { categorias, categoriasById, movimientos, cargando, abrirRegistro } =
+    useFinanzasCtx()
   const [filtro, setFiltro] = useState<TipoMovimiento | "todos">("todos")
   const [editando, setEditando] = useState<Movimiento | null>(null)
   const searchParams = useSearchParams()
@@ -38,6 +40,34 @@ export function HomeClient() {
     [movimientos, filtro]
   )
 
+  // Resumen del mes para la cabecera: lo que quieres ver nada más abrir.
+  // "Quedan" usa el mismo criterio que el Panel: gasto en categorías
+  // presupuestadas contra la suma de sus límites.
+  const resumen = useMemo(() => {
+    const mes = hoyISO().slice(0, 7)
+    const delMes = movimientos.filter(
+      (m) => m.tipo === "gasto" && m.fecha.startsWith(mes)
+    )
+    const gastado = delMes.reduce((s, m) => s + m.importe_cents, 0)
+
+    const presupuestadas = categorias.filter(
+      (c) => c.tipo === "gasto" && c.presupuesto_mensual_cents != null
+    )
+    if (presupuestadas.length === 0) return { gastado, disponible: null }
+
+    const limite = presupuestadas.reduce(
+      (s, c) => s + (c.presupuesto_mensual_cents ?? 0),
+      0
+    )
+    const ids = new Set(presupuestadas.map((c) => c.id))
+    const gastadoPresupuestado = delMes
+      .filter((m) => ids.has(m.categoria_id))
+      .reduce((s, m) => s + m.importe_cents, 0)
+    return { gastado, disponible: limite - gastadoPresupuestado }
+  }, [movimientos, categorias])
+
+  const nombreMes = new Date().toLocaleDateString("es-ES", { month: "long" })
+
   return (
     <>
       <header className="flex items-end justify-between px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3">
@@ -46,6 +76,29 @@ export function HomeClient() {
           <h1 className="pt-1 font-display text-[26px] font-semibold leading-none tracking-tight">
             Movimientos
           </h1>
+          {!cargando && (
+            <p className="pt-2 text-sm text-neutral-400">
+              <span className="capitalize">{nombreMes}</span> · Gastado{" "}
+              <span className="font-display font-semibold tabular-nums text-rose-400">
+                {formatEUR(resumen.gastado)}
+              </span>
+              {resumen.disponible !== null && (
+                <>
+                  {" "}
+                  · Quedan{" "}
+                  <span
+                    className={
+                      resumen.disponible >= 0
+                        ? "font-display font-semibold tabular-nums text-primary"
+                        : "font-display font-semibold tabular-nums text-rose-400"
+                    }
+                  >
+                    {formatEUR(resumen.disponible)}
+                  </span>
+                </>
+              )}
+            </p>
+          )}
         </div>
         <Link
           href="/ajustes"

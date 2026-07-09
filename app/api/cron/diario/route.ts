@@ -1,8 +1,9 @@
 import type { NextRequest } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { enviarMensaje } from "@/lib/telegram/api"
+import { enviarMensaje, enviarDocumento } from "@/lib/telegram/api"
 import { formatEUR, hoyISO } from "@/lib/finanzas/format"
-import type { GastoFijo } from "@/lib/finanzas/types"
+import { construirFilas, generarCSV } from "@/lib/finanzas/csv"
+import type { Categoria, GastoFijo, Movimiento } from "@/lib/finanzas/types"
 
 /**
  * Cron diario (Vercel Cron, ver vercel.json): registra los gastos fijos que
@@ -77,5 +78,50 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  return Response.json({ ok: true, registrados: registrados.length })
+  // Día 1: copia de seguridad del mes anterior por Telegram (CSV)
+  let backup = false
+  if (d === 1 && chatId) {
+    try {
+      const mesAnterior = new Date(y, m - 2, 1) // m es 1-based; -2 = mes previo
+      const prevIni = `${mesAnterior.getFullYear()}-${String(mesAnterior.getMonth() + 1).padStart(2, "0")}-01`
+      const esteIni = `${y}-${String(m).padStart(2, "0")}-01`
+
+      const [{ data: movs }, { data: cats }] = await Promise.all([
+        supabase
+          .from("movimientos")
+          .select("*")
+          .eq("user_id", userId)
+          .gte("fecha", prevIni)
+          .lt("fecha", esteIni)
+          .order("fecha"),
+        supabase.from("categorias").select("*").eq("user_id", userId),
+      ])
+
+      if (movs && movs.length > 0) {
+        const categoriasById = new Map(
+          ((cats ?? []) as Categoria[]).map((c) => [c.id, c])
+        )
+        const csv = generarCSV(construirFilas(movs as Movimiento[], categoriasById))
+        const etiqueta = mesAnterior.toLocaleDateString("es-ES", {
+          month: "long",
+          year: "numeric",
+        })
+        await enviarDocumento(
+          chatId,
+          `finanzas-${prevIni.slice(0, 7)}.csv`,
+          csv,
+          `📦 Copia de seguridad de ${etiqueta} (${movs.length} movimientos). Guárdala donde quieras.`
+        )
+        backup = true
+      }
+    } catch (e) {
+      console.error("cron diario: fallo el backup mensual:", e)
+      await enviarMensaje(
+        chatId,
+        "⚠️ El backup mensual automático falló. Puedes exportarlo a mano desde la pestaña Tabla."
+      )
+    }
+  }
+
+  return Response.json({ ok: true, registrados: registrados.length, backup })
 }

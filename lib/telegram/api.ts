@@ -61,3 +61,25 @@ export async function responderCallback(callbackId: string, texto?: string) {
     ...(texto ? { text: texto } : {}),
   })
 }
+
+/** Envía un archivo (p. ej. el CSV del backup mensual) */
+export async function enviarDocumento(
+  chatId: number | string,
+  nombreArchivo: string,
+  contenido: string,
+  caption?: string
+) {
+  const form = new FormData()
+  form.append("chat_id", String(chatId))
+  if (caption) form.append("caption", caption)
+  form.append(
+    "document",
+    new Blob([contenido], { type: "text/csv" }),
+    nombreArchivo
+  )
+  const res = await fetch(`${BASE()}/sendDocument`, { method: "POST", body: form })
+  if (!res.ok) {
+    console.error("Telegram sendDocument fallo:", res.status, await res.text())
+  }
+  return res
+}

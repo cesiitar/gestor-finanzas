@@ -32,6 +32,10 @@ export default function LoginPage() {
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        // Registro cerrado: solo pueden entrar cuentas que ya existen.
+        // Para añadir un usuario nuevo (multi-perfil futuro), crearlo a mano
+        // en Supabase → Authentication → Users → Add user.
+        shouldCreateUser: false,
       },
     })
     if (error) {

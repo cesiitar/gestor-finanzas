@@ -59,20 +59,26 @@ export function formatPct(ratio: number, conSigno = false): string {
   return pct
 }
 
-/** Fecha local de hoy en formato YYYY-MM-DD (sin sorpresas de timezone) */
+/**
+ * Fecha de hoy en formato YYYY-MM-DD, SIEMPRE en hora española.
+ * Clave para el servidor: Vercel corre en UTC y sin esto los registros
+ * del bot y los gastos fijos entre las 00:00 y las 02:00 caerían en "ayer".
+ */
 export function hoyISO(): string {
-  const d = new Date()
-  const mes = String(d.getMonth() + 1).padStart(2, "0")
-  const dia = String(d.getDate()).padStart(2, "0")
-  return `${d.getFullYear()}-${mes}-${dia}`
+  // El locale sueco (sv-SE) formatea exactamente como YYYY-MM-DD
+  return new Intl.DateTimeFormat("sv-SE", { timeZone: "Europe/Madrid" }).format(
+    new Date()
+  )
 }
 
 /** "2026-07-05" → "sáb, 5 jul" (o "hoy"/"ayer" si aplica) */
 export function formatFechaCorta(fechaISO: string): string {
-  if (fechaISO === hoyISO()) return "hoy"
+  const hoy = hoyISO()
+  if (fechaISO === hoy) return "hoy"
 
-  const ayer = new Date()
-  ayer.setDate(ayer.getDate() - 1)
+  // "Ayer" derivado de hoyISO (aritmética de calendario, sin timezone)
+  const [hy, hm, hd] = hoy.split("-").map(Number)
+  const ayer = new Date(hy, hm - 1, hd - 1)
   const ayerISO = `${ayer.getFullYear()}-${String(ayer.getMonth() + 1).padStart(2, "0")}-${String(ayer.getDate()).padStart(2, "0")}`
   if (fechaISO === ayerISO) return "ayer"
 

@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server"
 import { manejarUpdate } from "@/lib/telegram/handler"
+import { enviarMensaje } from "@/lib/telegram/api"
 
 /**
  * Webhook del bot de Telegram. Telegram hace POST aquí por cada mensaje.
@@ -28,6 +29,20 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     // Nunca devolvemos error a Telegram: si no, reintenta el mismo update en bucle
     console.error("Error procesando update de Telegram:", e)
+
+    // Autodiagnóstico: se avisa al dueño por el propio bot (solo a su chat)
+    try {
+      const chatId = (update as { message?: { chat?: { id?: number } } })?.message
+        ?.chat?.id
+      if (chatId && String(chatId) === (process.env.TELEGRAM_CHAT_ID ?? "").trim()) {
+        await enviarMensaje(
+          chatId,
+          "⚠️ Algo falló procesando tu último mensaje. Inténtalo de nuevo; si se repite, revisa los logs de Vercel."
+        )
+      }
+    } catch {
+      // El aviso es best-effort: si también falla, queda el log
+    }
   }
 
   return Response.json({ ok: true })
