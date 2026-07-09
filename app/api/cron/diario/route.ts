@@ -12,6 +12,10 @@ import type { GastoFijo } from "@/lib/finanzas/types"
 export async function GET(req: NextRequest) {
   const auth = req.headers.get("authorization")
   if (auth !== `Bearer ${(process.env.CRON_SECRET ?? "").trim()}`) {
+    // Diagnóstico sin exponer el secreto: ¿existe la variable? ¿qué longitud tiene?
+    console.warn(
+      `cron diario: auth fallida. CRON_SECRET definido=${process.env.CRON_SECRET !== undefined} len=${(process.env.CRON_SECRET ?? "").trim().length}`
+    )
     return new Response("unauthorized", { status: 401 })
   }
 
