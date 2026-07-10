@@ -478,6 +478,7 @@ const TEXTO_AYUDA = [
   "<code>12,50 cena mercadona</code>",
   "<code>ingreso 1200 nomina</code>",
   "<code>inversion 200 indexado</code>",
+  "Con fecha: <code>11 peluquero ayer</code>, <code>nomina 1200 el día 1</code>, <code>30 regalo 05/07</code>",
   "",
   "<b>Consultar</b>:",
   "· <code>resumen</code> o <code>cuánto llevo este mes</code>",
