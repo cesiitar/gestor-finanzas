@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { Bar, BarChart, Cell, Pie, PieChart, XAxis } from "recharts"
+import { Bar, BarChart, Cell, Pie, PieChart, ReferenceLine, XAxis } from "recharts"
 import {
   TriangleAlert,
   ChartPie,
@@ -80,9 +80,11 @@ function delta(actual: number, anterior: number): number | null {
 function DeltaChip({
   valor,
   alSubir,
+  etiqueta = "vs mes ant.",
 }: {
   valor: number | null
   alSubir: "bueno" | "malo"
+  etiqueta?: string
 }) {
   if (valor === null || !Number.isFinite(valor)) return null
   const sube = valor > 0
@@ -101,9 +103,32 @@ function DeltaChip({
     >
       <Icono className="size-3" aria-hidden />
       {formatPct(Math.abs(valor))}
-      <span className="font-normal text-neutral-500"> vs mes ant.</span>
+      <span className="font-normal text-neutral-500"> {etiqueta}</span>
     </span>
   )
+}
+
+/**
+ * Barra con el extremo del dato redondeado y la base (línea de cero) recta,
+ * también cuando el valor es negativo. Color por signo: lima ahorro, rosa
+ * déficit (misma semántica que la tarjeta héroe; el signo lo codifica además
+ * la dirección de la barra respecto al cero, el color solo refuerza).
+ */
+function BarraAhorro(props: {
+  x?: number
+  y?: number
+  width?: number
+  height?: number
+  payload?: { ahorro: number }
+}) {
+  const { x = 0, y = 0, width = 0, height = 0, payload } = props
+  if (height <= 0 || width <= 0) return <g />
+  const positivo = (payload?.ahorro ?? 0) >= 0
+  const r = Math.min(4, width / 2, height)
+  const d = positivo
+    ? `M${x},${y + height} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + width - r},${y} Q${x + width},${y} ${x + width},${y + r} L${x + width},${y + height} Z`
+    : `M${x},${y} L${x + width},${y} L${x + width},${y + height - r} Q${x + width},${y + height} ${x + width - r},${y + height} L${x + r},${y + height} Q${x},${y + height} ${x},${y + height - r} Z`
+  return <path d={d} fill={positivo ? "#a3e635" : "#fb7185"} />
 }
 
 export function DashboardView() {
@@ -115,10 +140,16 @@ export function DashboardView() {
     () => movimientos.filter((m) => m.fecha.startsWith(mes)),
     [movimientos, mes]
   )
+  // Comparación honesta: con el mes en curso a medias, compararlo contra el
+  // mes anterior COMPLETO infla los deltas ("¡gastas un 60% menos!" el día 10).
+  // Si el mes está en curso, se compara contra el mismo tramo de días (1..hoy).
   const delMesAnterior = useMemo(() => {
     const prev = sumarMeses(mes, -1)
-    return movimientos.filter((m) => m.fecha.startsWith(prev))
-  }, [movimientos, mes])
+    const delPrev = movimientos.filter((m) => m.fecha.startsWith(prev))
+    if (!esMesActual) return delPrev
+    const corte = `${prev}-${hoyISO().slice(8, 10)}`
+    return delPrev.filter((m) => m.fecha <= corte)
+  }, [movimientos, mes, esMesActual])
 
   const r = useMemo(() => resumenDe(delMes), [delMes])
   const rPrev = useMemo(() => resumenDe(delMesAnterior), [delMesAnterior])
@@ -183,10 +214,28 @@ export function DashboardView() {
             .replace(".", ""),
           ingresos: res.ingresos / 100,
           gastos: res.gastos / 100,
+          ahorro: res.ahorro / 100,
+          tasa: res.ingresos > 0 ? res.ahorro / res.ingresos : null,
+          activo: res.ingresos > 0 || res.gastos > 0,
         }
       })
   }, [movimientos, mes])
-  const hayEvolucion = evolucion.some((e) => e.ingresos > 0 || e.gastos > 0)
+  const hayEvolucion = evolucion.some((e) => e.activo)
+
+  // ---- Ahorro por mes: media y acumulado SOLO de meses con actividad ----
+  // (los meses vacíos de antes de usar la app no cuentan: hundirían la media)
+  const ahorroHistorico = useMemo(() => {
+    const activos = evolucion.filter((e) => e.activo)
+    if (activos.length === 0) return null
+    const acumuladoCents = Math.round(
+      activos.reduce((s, e) => s + e.ahorro, 0) * 100
+    )
+    return {
+      meses: activos.length,
+      acumulado: acumuladoCents,
+      media: Math.round(acumuladoCents / activos.length),
+    }
+  }, [evolucion])
 
   // ---- Reparto de gastos por categoría ----
   const gastoPorCategoria = useMemo(() => {
@@ -246,6 +295,7 @@ export function DashboardView() {
     ingresos: { label: "Ingresos", color: "#34d399" },
     gastos: { label: "Gastos", color: "#fb7185" },
   } satisfies ChartConfig
+  const configAhorro = { ahorro: { label: "Ahorro" } } satisfies ChartConfig
 
   const estadoAhorro = tasaAhorro !== null ? estadoTasaAhorro(tasaAhorro) : null
 
@@ -374,6 +424,28 @@ export function DashboardView() {
                   </p>
                 </div>
               )}
+
+              {/* Realidad de bolsillo: el ahorro que se fue a inversión no es líquido */}
+              {r.invertido > 0 && (
+                <p className="pt-3 text-xs text-neutral-400">
+                  Tras invertir{" "}
+                  <span className="tabular-nums text-sky-400">
+                    {formatEUR(r.invertido)}
+                  </span>
+                  , te quedan{" "}
+                  <span
+                    className={cn(
+                      "font-medium tabular-nums",
+                      r.ahorro - r.invertido >= 0
+                        ? "text-neutral-100"
+                        : "text-rose-400"
+                    )}
+                  >
+                    {formatEUR(r.ahorro - r.invertido)}
+                  </span>{" "}
+                  líquidos este mes
+                </p>
+              )}
             </div>
           </section>
 
@@ -384,18 +456,31 @@ export function DashboardView() {
               <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-emerald-400">
                 {formatEUR(r.ingresos)}
               </p>
-              <DeltaChip valor={deltaIngresos} alSubir="bueno" />
+              <DeltaChip
+                valor={deltaIngresos}
+                alSubir="bueno"
+                etiqueta={esMesActual ? "vs mismo día mes ant." : "vs mes ant."}
+              />
             </div>
             <div className="card p-4">
               <p className="text-xs text-neutral-500">Gastos</p>
               <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-rose-400">
                 {formatEUR(r.gastos)}
               </p>
-              <DeltaChip valor={deltaGastos} alSubir="malo" />
+              <DeltaChip
+                valor={deltaGastos}
+                alSubir="malo"
+                etiqueta={esMesActual ? "vs mismo día mes ant." : "vs mes ant."}
+              />
               {gastosFijosMes > 0 && (
                 <p className="pt-1.5 text-[11px] tabular-nums text-neutral-500">
                   Fijos {formatEUR(gastosFijosMes)} · Variables{" "}
                   {formatEUR(r.gastos - gastosFijosMes)}
+                </p>
+              )}
+              {gastosFijosMes > 0 && r.ingresos > 0 && (
+                <p className="text-[11px] tabular-nums text-neutral-500">
+                  Fijos = {formatPct(gastosFijosMes / r.ingresos)} de tus ingresos
                 </p>
               )}
             </div>
@@ -527,6 +612,112 @@ export function DashboardView() {
                     Gastos
                   </span>
                 </div>
+              </>
+            )}
+          </section>
+
+          {/* ── Ahorro por mes ─────────────────────────────────────── */}
+          <section className="card p-4" aria-label="Ahorro por mes">
+            <h2 className="micro-label">Ahorro por mes · últimos 6 meses</h2>
+            {!hayEvolucion || !ahorroHistorico ? (
+              <p className="py-8 text-center text-sm text-neutral-500">
+                Aún no hay historial suficiente.
+              </p>
+            ) : (
+              <>
+                <ChartContainer config={configAhorro} className="mt-3 h-40 w-full">
+                  <BarChart data={evolucion} barGap={2}>
+                    <XAxis
+                      dataKey="mes"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "#898781", fontSize: 11 }}
+                    />
+                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.18)" />
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(value) => (
+                            <span className="flex w-full items-center justify-between gap-3">
+                              <span className="text-muted-foreground">
+                                {Number(value) >= 0 ? "Ahorro" : "Déficit"}
+                              </span>
+                              <span className="font-medium tabular-nums">
+                                {formatEUR(Math.round(Number(value) * 100))}
+                              </span>
+                            </span>
+                          )}
+                        />
+                      }
+                    />
+                    <Bar
+                      dataKey="ahorro"
+                      shape={<BarraAhorro />}
+                      maxBarSize={22}
+                    />
+                  </BarChart>
+                </ChartContainer>
+
+                {/* Lectura rápida: la media es la cifra realista, no el mejor mes */}
+                <div className="grid grid-cols-2 gap-3 pt-3">
+                  <div>
+                    <p className="text-xs text-neutral-500">Media mensual</p>
+                    <p
+                      className={cn(
+                        "pt-0.5 font-display text-lg font-semibold tabular-nums",
+                        ahorroHistorico.media >= 0 ? "text-primary" : "text-rose-400"
+                      )}
+                    >
+                      {formatEUR(ahorroHistorico.media)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-neutral-500">
+                      Acumulado ({ahorroHistorico.meses}{" "}
+                      {ahorroHistorico.meses === 1 ? "mes" : "meses"})
+                    </p>
+                    <p
+                      className={cn(
+                        "pt-0.5 font-display text-lg font-semibold tabular-nums",
+                        ahorroHistorico.acumulado >= 0
+                          ? "text-neutral-100"
+                          : "text-rose-400"
+                      )}
+                    >
+                      {formatEUR(ahorroHistorico.acumulado)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Detalle mes a mes (con tasa de ahorro cuando hubo ingresos) */}
+                <ul className="space-y-1 pt-3">
+                  {evolucion
+                    .filter((e) => e.activo)
+                    .map((e) => (
+                      <li
+                        key={e.mes}
+                        className="flex items-baseline gap-2 text-sm"
+                      >
+                        <span className="w-10 shrink-0 capitalize text-neutral-400">
+                          {e.mes}
+                        </span>
+                        <span className="flex-1 border-b border-dashed border-white/[0.06]" />
+                        {e.tasa !== null && (
+                          <span className="text-xs tabular-nums text-neutral-500">
+                            {formatPct(e.tasa)}
+                          </span>
+                        )}
+                        <span
+                          className={cn(
+                            "w-24 text-right font-medium tabular-nums",
+                            e.ahorro >= 0 ? "text-neutral-200" : "text-rose-400"
+                          )}
+                        >
+                          {formatEUR(Math.round(e.ahorro * 100))}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
               </>
             )}
           </section>
