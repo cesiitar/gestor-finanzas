@@ -46,3 +46,9 @@ __pycache__/
 # service worker generado por serwist build
 public/sw.js
 public/sw.js.map
+
+# archivos de trabajo local (no van al repo publico)
+CLAUDE.md
+AGENTS.md
+.claude/
+prompt-app-finanzas.md
