@@ -2,7 +2,7 @@
 
 App de finanzas personales que uso a diario: una PWA instalada en el móvil y un bot de Telegram que hace de puerta de entrada rápida. La hice porque las apps de finanzas que probé me pedían demasiados pasos para apuntar un café, y al final dejaba de usarlas. Aquí la regla es una: registrar un gasto tiene que costar menos de cinco segundos, y si no quiero abrir la app, se lo escribo al bot como le escribiría a un amigo.
 
-En producción corre en Vercel con Supabase de backend. El login está cerrado (es de uso personal), pero todo el código está aquí.
+En producción corre en Vercel con Supabase de backend. Es un proyecto personal: la instancia desplegada es para mi uso, el registro está cerrado y de momento no está pensado como producto abierto al público. Publico el código para que se pueda leer cómo está montado y por qué.
 
 ## Qué hace
 
@@ -87,3 +87,7 @@ El build de producción es `npm run build` (compila Next y genera el service wor
 - Rediseñar la parte de inversiones (valoración de posiciones, aportaciones vs revalorización). Es la pieza más cambiante y quiero pensarla bien antes de complicarla.
 - Lista de movimientos agrupada por día con totales diarios.
 - Selector de icono para categorías personalizadas.
+
+## Sobre este repo
+
+Es un proyecto personal y de momento va a seguir siéndolo: no es un producto, no hay registro abierto y no busco contribuciones por ahora. Está publicado como parte de mi portfolio, para que se pueda leer el código y las decisiones que hay detrás. Si tienes alguna pregunta sobre cómo está hecho, encantado de responderla.
