@@ -90,4 +90,4 @@ El build de producción es `npm run build` (compila Next y genera el service wor
 
 ## Sobre este repo
 
-Es un proyecto personal y de momento va a seguir siéndolo: no es un producto, no hay registro abierto y no busco contribuciones por ahora. Está publicado como parte de mi portfolio, para que se pueda leer el código y las decisiones que hay detrás. Si tienes alguna pregunta sobre cómo está hecho, encantado de responderla.
+Es un proyecto personal y de momento va a seguir siéndolo: no es un producto, no hay registro abierto y no busco contribuciones por ahora. Está publicado como parte de mi portfolio, para que se pueda leer el código y las decisiones que hay detrás. No tiene licencia de uso: todos los derechos reservados. Si tienes alguna pregunta sobre cómo está hecho, encantado de responderla.
