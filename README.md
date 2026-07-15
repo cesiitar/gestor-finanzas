@@ -9,7 +9,7 @@ En producción corre en Vercel con Supabase de backend. Es un proyecto personal:
 **La app (PWA, mobile-first, modo oscuro):**
 
 - Registro rápido de gastos, ingresos e inversiones en tres toques, con UI optimista: el movimiento aparece al instante y si el servidor falla, se revierte con aviso.
-- Panel con KPIs de verdad: tasa de ahorro con objetivo, ritmo de gasto proyectado a fin de mes, evolución de 6 meses, desglose fijo vs variable, top de gastos y estado de presupuestos.
+- Panel con KPIs de verdad: tasa de ahorro con objetivo, ritmo de gasto proyectado a fin de mes, ahorro por mes (media y acumulado), evolución de 6 meses, desglose fijo vs variable, top de gastos y estado de presupuestos. Las comparativas son honestas: el mes en curso se compara contra el mismo tramo de días del mes anterior, no contra el mes completo.
 - Presupuestos mensuales por categoría, con la cabecera de inicio diciéndote lo que llevas gastado y lo que te queda.
 - Gastos fijos (alquiler, suscripciones...) que se registran solos el día que tocan.
 - Tabla completa con búsqueda, orden y exportación a CSV/XLSX (formato español: separador `;`, coma decimal, BOM para Excel).
