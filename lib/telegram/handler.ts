@@ -81,7 +81,7 @@ export async function manejarUpdate(update: TgUpdate) {
 // Mensajes de texto
 // ---------------------------------------------------------------------------
 async function manejarTexto(chatId: number, texto: string) {
-  // Normaliza comandos: "/resumen" o "/resumen@gestor_finanzas_bot" → "resumen"
+  // Normaliza comandos: "/resumen" o "/resumen@nombre_del_bot" → "resumen"
   const t = texto.toLowerCase().replace(/^\/(\w+)(@\w+)?/, "$1")
 
   if (t === "start" || t === "ayuda" || t === "help") {

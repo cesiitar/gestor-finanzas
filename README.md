@@ -46,8 +46,6 @@ Telegram ─────┘         │
 - **Reglas primero, IA después.** El parser del bot resuelve el 90% de los mensajes con regex y aritmética de calendario ("el día 25" cuando estás a 10 es el 25 del mes pasado). Solo cede al LLM lo que de verdad es ambiguo ("el sábado pasado"), y si la IA falla, el bot pide reformular: la IA solo puede sumar, nunca romper el flujo.
 - **Seguridad pensada desde el principio**: RLS en todo, registro de usuarios cerrado, webhook con doble verificación, protección anti open-redirect en el callback de auth, cabeceras de seguridad y ningún secreto en el repo ni en el bundle del cliente.
 
-Hay más detalle en [docs/arquitectura.md](docs/arquitectura.md) y [docs/bot-telegram.md](docs/bot-telegram.md).
-
 ## Ejecutarlo en local
 
 Hace falta un proyecto de Supabase (gratis) y, si quieres el bot, un bot de Telegram creado con @BotFather.
