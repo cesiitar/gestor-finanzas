@@ -4,8 +4,8 @@ import { useMemo } from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { LogoBarras } from "@/components/ui/logo-barras"
 import { cn } from "@/lib/utils"
-import { formatEUR, formatFechaCorta, hoyISO } from "@/lib/finanzas/format"
-import { lunesISO, etiquetaSemana } from "@/lib/finanzas/semana"
+import { formatEUR, formatFechaCorta } from "@/lib/finanzas/format"
+import { semanaDelMes, rangoSemanaDelMes } from "@/lib/finanzas/semana"
 import { getIconoCategoria, COLOR_TIPO } from "@/lib/finanzas/iconos"
 import type { Categoria, Movimiento, TipoMovimiento } from "@/lib/finanzas/types"
 
@@ -129,22 +129,32 @@ export function MovimientosList({
   onAdd,
   filtro,
 }: Props) {
-  // Agrupa por semana (lunes) preservando el orden desc de los movimientos
+  // Agrupa por semana del mes (1–7, 8–14…) preservando el orden desc.
+  // La clave incluye el mes para ser correcta aunque llegaran varios meses.
   const semanas = useMemo(() => {
     if (!filtro) return null
-    const hoy = hoyISO()
-    const mapa = new Map<string, Movimiento[]>()
+    const mapa = new Map<
+      string,
+      { nombre: number; rango: string; movs: Movimiento[] }
+    >()
     for (const m of movimientos) {
-      const lunes = lunesISO(m.fecha)
-      const grupo = mapa.get(lunes)
-      if (grupo) grupo.push(m)
-      else mapa.set(lunes, [m])
+      const n = semanaDelMes(m.fecha)
+      const clave = `${m.fecha.slice(0, 7)}#${n}`
+      const grupo = mapa.get(clave)
+      if (grupo) grupo.movs.push(m)
+      else
+        mapa.set(clave, {
+          nombre: n,
+          rango: rangoSemanaDelMes(m.fecha),
+          movs: [m],
+        })
     }
-    return [...mapa.entries()].map(([lunes, movs]) => ({
-      lunes,
-      etiqueta: etiquetaSemana(lunes, hoy),
-      movs,
-      subtotal: subtotalSemana(movs, filtro),
+    return [...mapa.entries()].map(([clave, g]) => ({
+      clave,
+      nombre: g.nombre,
+      rango: g.rango,
+      movs: g.movs,
+      subtotal: subtotalSemana(g.movs, filtro),
     }))
   }, [movimientos, filtro])
 
@@ -188,9 +198,12 @@ export function MovimientosList({
     return (
       <div className="space-y-5">
         {semanas.map((s) => (
-          <div key={s.lunes}>
+          <div key={s.clave}>
             <div className="flex items-baseline justify-between px-1 pb-1.5">
-              <span className="micro-label">{s.etiqueta}</span>
+              <span className="micro-label">
+                Semana {s.nombre}{" "}
+                <span className="text-neutral-600">· {s.rango}</span>
+              </span>
               <span
                 className={cn(
                   "font-display text-sm font-semibold tabular-nums",

@@ -1,50 +1,21 @@
 /**
- * Utilidades de semana (lunes a domingo, convención europea) para agrupar
- * la lista de movimientos. Todo opera sobre fechas ISO "YYYY-MM-DD" con
- * aritmética de calendario local, sin horas ni zonas horarias.
+ * Semanas del MES (no naturales): la semana 1 son los días 1–7, la 2 los
+ * 8–14, etc. Así cada semana cae siempre dentro de un único mes y nunca
+ * queda partida entre dos meses. Opera sobre fechas ISO "YYYY-MM-DD".
  */
 
-const pad = (n: number) => String(n).padStart(2, "0")
-const aISO = (d: Date) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-
-/** Lunes de la semana a la que pertenece esa fecha */
-export function lunesISO(fechaISO: string): string {
-  const [y, m, d] = fechaISO.split("-").map(Number)
-  const dt = new Date(y, m - 1, d)
-  const dow = dt.getDay() // 0=domingo … 6=sábado
-  const desdeLunes = dow === 0 ? 6 : dow - 1
-  dt.setDate(dt.getDate() - desdeLunes)
-  return aISO(dt)
+/** Número de semana del mes (1..5) al que pertenece esa fecha */
+export function semanaDelMes(fechaISO: string): number {
+  const dia = Number(fechaISO.slice(8, 10))
+  return Math.floor((dia - 1) / 7) + 1
 }
 
-/** Suma días a una fecha ISO */
-export function sumarDias(fechaISO: string, dias: number): string {
-  const [y, m, d] = fechaISO.split("-").map(Number)
-  return aISO(new Date(y, m - 1, d + dias))
-}
-
-/**
- * Etiqueta de una semana a partir de su lunes:
- * "Esta semana", "Semana pasada" o el rango "7–13 jul" / "28 jun–4 jul".
- */
-export function etiquetaSemana(lunes: string, hoyISO: string): string {
-  const lunesActual = lunesISO(hoyISO)
-  if (lunes === lunesActual) return "Esta semana"
-  if (lunes === sumarDias(lunesActual, -7)) return "Semana pasada"
-
-  const domingo = sumarDias(lunes, 6)
-  const [ly, lm, ld] = lunes.split("-").map(Number)
-  const [dy, dm, dd] = domingo.split("-").map(Number)
-  const mesLunes = new Date(ly, lm - 1, ld).toLocaleDateString("es-ES", {
-    month: "short",
-  }).replace(".", "")
-  const mesDomingo = new Date(dy, dm - 1, dd).toLocaleDateString("es-ES", {
-    month: "short",
-  }).replace(".", "")
-
-  // Mismo mes: "7–13 jul"; distinto: "28 jun–4 jul"
-  return lm === dm
-    ? `${ld}–${dd} ${mesDomingo}`
-    : `${ld} ${mesLunes}–${dd} ${mesDomingo}`
+/** Rango de días de esa semana del mes: "1–7", "8–14", "29–31"… */
+export function rangoSemanaDelMes(fechaISO: string): string {
+  const [y, m] = fechaISO.split("-").map(Number)
+  const n = semanaDelMes(fechaISO)
+  const ultimoDia = new Date(y, m, 0).getDate() // día 0 del mes siguiente
+  const ini = (n - 1) * 7 + 1
+  const fin = Math.min(n * 7, ultimoDia)
+  return `${ini}–${fin}`
 }
