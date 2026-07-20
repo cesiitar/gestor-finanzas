@@ -291,10 +291,6 @@ export function DashboardView() {
   )
 
   const configDonut = { euros: { label: "Gasto" } } satisfies ChartConfig
-  const configEvolucion = {
-    ingresos: { label: "Ingresos", color: "#34d399" },
-    gastos: { label: "Gastos", color: "#fb7185" },
-  } satisfies ChartConfig
   const configAhorro = { ahorro: { label: "Ahorro" } } satisfies ChartConfig
 
   const estadoAhorro = tasaAhorro !== null ? estadoTasaAhorro(tasaAhorro) : null
@@ -561,60 +557,6 @@ export function DashboardView() {
               )}
             </section>
           )}
-
-          {/* ── Evolución 6 meses ──────────────────────────────────── */}
-          <section className="card p-4" aria-label="Evolución">
-            <h2 className="micro-label">
-              Ingresos vs gastos · últimos 6 meses
-            </h2>
-            {!hayEvolucion ? (
-              <p className="py-8 text-center text-sm text-neutral-500">
-                Aún no hay historial suficiente.
-              </p>
-            ) : (
-              <>
-                <ChartContainer config={configEvolucion} className="mt-3 h-40 w-full">
-                  <BarChart data={evolucion} barGap={2}>
-                    <XAxis
-                      dataKey="mes"
-                      tickLine={false}
-                      axisLine={false}
-                      tick={{ fill: "#898781", fontSize: 11 }}
-                    />
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          formatter={(value, name) => (
-                            <span className="flex w-full items-center justify-between gap-3">
-                              <span className="text-muted-foreground">
-                                {name === "ingresos" ? "Ingresos" : "Gastos"}
-                              </span>
-                              <span className="font-medium tabular-nums">
-                                {formatEUR(Math.round(Number(value) * 100))}
-                              </span>
-                            </span>
-                          )}
-                        />
-                      }
-                    />
-                    <Bar dataKey="ingresos" fill="#34d399" radius={[4, 4, 0, 0]} maxBarSize={18} />
-                    <Bar dataKey="gastos" fill="#fb7185" radius={[4, 4, 0, 0]} maxBarSize={18} />
-                  </BarChart>
-                </ChartContainer>
-                {/* Leyenda (identidad nunca solo por color) */}
-                <div className="flex items-center gap-4 pt-2 text-xs text-neutral-400">
-                  <span className="flex items-center gap-1.5">
-                    <span className="size-2.5 rounded-full bg-[#34d399]" aria-hidden />
-                    Ingresos
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="size-2.5 rounded-full bg-[#fb7185]" aria-hidden />
-                    Gastos
-                  </span>
-                </div>
-              </>
-            )}
-          </section>
 
           {/* ── Ahorro por mes ─────────────────────────────────────── */}
           <section className="card p-4" aria-label="Ahorro por mes">

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { formatEUR, hoyISO } from "@/lib/finanzas/format"
 import { useFinanzasCtx } from "./finanzas-provider"
 import { MovimientosList } from "./movimientos-list"
+import { MesSelector } from "./mes-selector"
 import { EditarMovimientoDrawer } from "./editar-movimiento-drawer"
 import type { Movimiento, TipoMovimiento } from "@/lib/finanzas/types"
 
@@ -22,9 +23,11 @@ const FILTROS: { valor: TipoMovimiento | "todos"; etiqueta: string }[] = [
 export function HomeClient() {
   const { categorias, categoriasById, movimientos, cargando, abrirRegistro } =
     useFinanzasCtx()
+  const [mes, setMes] = useState(hoyISO().slice(0, 7))
   const [filtro, setFiltro] = useState<TipoMovimiento | "todos">("todos")
   const [editando, setEditando] = useState<Movimiento | null>(null)
   const searchParams = useSearchParams()
+  const esMesActual = mes === hoyISO().slice(0, 7)
 
   // Acceso directo del icono de la PWA: /?add=1 abre el registro al entrar
   useEffect(() => {
@@ -32,23 +35,24 @@ export function HomeClient() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Coherencia con Panel y Tabla: la vista se acota al mes seleccionado,
+  // y dentro se agrupa por semanas (lo hace MovimientosList).
+  const delMes = useMemo(
+    () => movimientos.filter((m) => m.fecha.startsWith(mes)),
+    [movimientos, mes]
+  )
   const visibles = useMemo(
     () =>
-      filtro === "todos"
-        ? movimientos
-        : movimientos.filter((m) => m.tipo === filtro),
-    [movimientos, filtro]
+      filtro === "todos" ? delMes : delMes.filter((m) => m.tipo === filtro),
+    [delMes, filtro]
   )
 
   // Resumen del mes para la cabecera: lo que quieres ver nada más abrir.
   // "Quedan" usa el mismo criterio que el Panel: gasto en categorías
   // presupuestadas contra la suma de sus límites.
   const resumen = useMemo(() => {
-    const mes = hoyISO().slice(0, 7)
-    const delMes = movimientos.filter(
-      (m) => m.tipo === "gasto" && m.fecha.startsWith(mes)
-    )
-    const gastado = delMes.reduce((s, m) => s + m.importe_cents, 0)
+    const gastos = delMes.filter((m) => m.tipo === "gasto")
+    const gastado = gastos.reduce((s, m) => s + m.importe_cents, 0)
 
     const presupuestadas = categorias.filter(
       (c) => c.tipo === "gasto" && c.presupuesto_mensual_cents != null
@@ -60,13 +64,11 @@ export function HomeClient() {
       0
     )
     const ids = new Set(presupuestadas.map((c) => c.id))
-    const gastadoPresupuestado = delMes
+    const gastadoPresupuestado = gastos
       .filter((m) => ids.has(m.categoria_id))
       .reduce((s, m) => s + m.importe_cents, 0)
     return { gastado, disponible: limite - gastadoPresupuestado }
-  }, [movimientos, categorias])
-
-  const nombreMes = new Date().toLocaleDateString("es-ES", { month: "long" })
+  }, [delMes, categorias])
 
   return (
     <>
@@ -78,11 +80,11 @@ export function HomeClient() {
           </h1>
           {!cargando && (
             <p className="pt-2 text-sm text-neutral-400">
-              <span className="capitalize">{nombreMes}</span> · Gastado{" "}
+              Gastado{" "}
               <span className="font-display font-semibold tabular-nums text-rose-400">
                 {formatEUR(resumen.gastado)}
               </span>
-              {resumen.disponible !== null && (
+              {esMesActual && resumen.disponible !== null && (
                 <>
                   {" "}
                   · Quedan{" "}
@@ -108,6 +110,8 @@ export function HomeClient() {
           <Settings className="size-[18px]" aria-hidden />
         </Link>
       </header>
+
+      <MesSelector mes={mes} onChange={setMes} />
 
       {/* Filtro por tipo */}
       <div
