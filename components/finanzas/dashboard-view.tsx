@@ -689,6 +689,17 @@ export function DashboardView() {
                   </div>
                 </div>
 
+                {/* Proyección: la media mensual llevada a un año */}
+                {ahorroHistorico.meses >= 2 && ahorroHistorico.media > 0 && (
+                  <p className="pt-3 text-sm text-neutral-400">
+                    A este ritmo ahorrarías{" "}
+                    <span className="font-medium tabular-nums text-primary">
+                      {formatEUR(ahorroHistorico.media * 12)}
+                    </span>{" "}
+                    en un año
+                  </p>
+                )}
+
                 {/* Detalle mes a mes (con tasa de ahorro cuando hubo ingresos) */}
                 <ul className="space-y-1 pt-3">
                   {evolucion

@@ -141,6 +141,7 @@ export function HomeClient() {
           cargando={cargando}
           onSelect={setEditando}
           onAdd={abrirRegistro}
+          filtro={filtro}
         />
       </main>
 

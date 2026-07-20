@@ -51,10 +51,15 @@ export async function GET(req: NextRequest) {
     else if (m.tipo === "gasto") gastos += m.importe_cents
   }
 
-  // Semana: gasto total + top 3 categorías
+  // Semana: ingresos + gastos + top 3 categorías de gasto
   const gastoSemanaPorCat = new Map<string, number>()
   let gastoSemana = 0
+  let ingresoSemana = 0
   for (const m of (movsSemana ?? []) as Movimiento[]) {
+    if (m.tipo === "ingreso") {
+      ingresoSemana += m.importe_cents
+      continue
+    }
     if (m.tipo !== "gasto") continue
     gastoSemana += m.importe_cents
     gastoSemanaPorCat.set(
@@ -89,8 +94,10 @@ export async function GET(req: NextRequest) {
   const lineas = [
     "📬 <b>Resumen semanal</b>",
     "",
-    `Esta semana has gastado <b>${formatEUR(gastoSemana)}</b>`,
-    ...(top.length > 0 ? ["Donde más:", ...top] : []),
+    "<b>Esta semana</b>",
+    `🟢 Ingresos ${formatEUR(ingresoSemana)} · 🔴 Gastos ${formatEUR(gastoSemana)}`,
+    `💰 Ahorro ${formatEUR(ingresoSemana - gastoSemana)}`,
+    ...(top.length > 0 ? ["Donde más gastaste:", ...top] : []),
     "",
     `<b>El mes hasta hoy</b>`,
     `🟢 Ingresos ${formatEUR(ingresos)} · 🔴 Gastos ${formatEUR(gastos)}`,
