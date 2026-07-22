@@ -55,9 +55,47 @@ function sumarDias(iso: string, dias: number): string {
   return dt.toISOString().slice(0, 10)
 }
 
+/** Quita acentos para comparar ("miércoles" → "miercoles") */
+const sinTildes = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+
+/** Día de la semana → número JS (0 domingo … 6 sábado) */
+const DIAS_SEMANA: Record<string, number> = {
+  domingo: 0, lunes: 1, martes: 2, miercoles: 3,
+  jueves: 4, viernes: 5, sabado: 6,
+}
+
+/** Día de la semana de una fecha ISO (0 domingo … 6 sábado) */
+function diaSemanaDe(iso: string): number {
+  const [y, m, d] = iso.split("-").map(Number)
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay()
+}
+
+/**
+ * Fecha del día de la semana `objetivo` respecto a hoy:
+ * - "reciente": la ocurrencia más reciente (hoy incluido) → "el jueves"
+ * - "pasado":   la de la semana anterior → "jueves pasado"
+ * - "proximo":  la próxima futura → "jueves que viene"
+ */
+function fechaDiaSemana(
+  hoy: string,
+  objetivo: number,
+  modo: "reciente" | "pasado" | "proximo"
+): string {
+  const dow = diaSemanaDe(hoy)
+  let delta: number
+  if (modo === "proximo") {
+    delta = ((objetivo - dow + 7) % 7) || 7
+  } else if (modo === "pasado") {
+    delta = -(((dow - objetivo + 7) % 7) || 7)
+  } else {
+    delta = -((dow - objetivo + 7) % 7) // reciente: 0 si hoy es ese día
+  }
+  return sumarDias(hoy, delta)
+}
+
 // Palabras temporales que el parser NO sabe resolver → que lo intente la IA
-const TEMPORAL_SIN_RESOLVER =
-  /\b(lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo|semana|finde|pasad[oa]s?)\b/i
+const TEMPORAL_SIN_RESOLVER = /\b(semana|finde|mes\s+pasad[oa])\b/i
 
 interface FechaExtraida {
   /** undefined = el texto no menciona fecha (se registrará hoy) */
@@ -82,6 +120,37 @@ function extraerFecha(texto: string): FechaExtraida {
   for (const [re, delta] of relativas) {
     if (re.test(texto)) {
       return { fecha: sumarDias(hoy, delta), resto: texto.replace(re, " ") }
+    }
+  }
+
+  // "pasado mañana" (futuro explícito: si el usuario lo dice, se respeta)
+  if (/\bpasado\s+mañana\b/i.test(texto))
+    return { fecha: sumarDias(hoy, 2), resto: texto.replace(/\bpasado\s+mañana\b/i, " ") }
+  // "esta mañana" / "por la mañana" = HOY (mañana = franja del día, no el futuro)
+  const mananaHoy = texto.match(/\b(esta\s+mañana|por\s+la\s+mañana|de\s+la\s+mañana)\b/i)
+  if (mananaHoy) return { fecha: hoy, resto: texto.replace(mananaHoy[0], " ") }
+  // "mañana" a secas = día siguiente
+  if (/\bmañana\b/i.test(texto))
+    return { fecha: sumarDias(hoy, 1), resto: texto.replace(/\bmañana\b/i, " ") }
+
+  // Días de la semana: "el jueves", "jueves pasado", "jueves que viene",
+  // "próximo lunes"…  (lunes-domingo, con o sin tilde)
+  const diaSem = texto.match(
+    /\b(?:(pr[oó]xim[oa]|el|este)\s+)?(lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo)(?:\s+(que\s+viene|pr[oó]xim[oa]|siguiente|pasad[oa]|anterior))?\b/i
+  )
+  if (diaSem) {
+    const objetivo = DIAS_SEMANA[sinTildes(diaSem[2])]
+    const antes = diaSem[1] ? sinTildes(diaSem[1]) : ""
+    const despues = diaSem[3] ? sinTildes(diaSem[3]) : ""
+    const modo: "reciente" | "pasado" | "proximo" =
+      /pasad|anterior/.test(despues)
+        ? "pasado"
+        : /viene|proxim|siguiente/.test(despues) || antes.startsWith("proxim")
+          ? "proximo"
+          : "reciente"
+    return {
+      fecha: fechaDiaSemana(hoy, objetivo, modo),
+      resto: texto.replace(diaSem[0], " "),
     }
   }
 
