@@ -47,7 +47,23 @@ export interface Posicion {
   id: string
   user_id: string
   nombre: string
+  /** Última valoración conocida (denormalizada para leer rápido) */
   valor_actual_cents: number
+  /** Coste base sembrado al crear la posición (aportaciones previas al registro) */
+  coste_inicial_cents: number
+  /** Etiqueta libre: 'fondo', 'accion', 'cripto', 'otro'… */
+  tipo: string | null
+  created_at: string
+}
+
+/** Foto del valor de una posición en una fecha (para la gráfica de evolución) */
+export interface Valoracion {
+  id: string
+  user_id: string
+  posicion_id: string
+  /** Fecha YYYY-MM-DD */
+  fecha: string
+  valor_cents: number
   created_at: string
 }
 

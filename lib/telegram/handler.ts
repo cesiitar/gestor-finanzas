@@ -4,6 +4,12 @@ import type { Categoria, Movimiento, TipoMovimiento } from "@/lib/finanzas/types
 import { enviarMensaje, editarMensaje, responderCallback, type BotonInline } from "./api"
 import { parsearMovimiento, sugerirCategoria, CATEGORIA_FALLBACK } from "./parser"
 import { interpretarMovimientoIA } from "./nlu"
+import {
+  resumenFondosBot,
+  actualizarValoresBot,
+  emparejarPosicion,
+} from "./inversiones"
+import type { Posicion } from "@/lib/finanzas/types"
 
 /**
  * Lógica del bot. Todo lee/escribe con el cliente admin (se salta RLS),
@@ -98,6 +104,17 @@ async function manejarTexto(chatId: number, texto: string) {
   }
   if (/^([uú]ltimos?)( \d+)?$/.test(t)) {
     await ultimosMovimientos(chatId)
+    return
+  }
+  // Ver la cartera de inversión
+  if (/^(fondos|cartera|inversiones|mis fondos)$/.test(t)) {
+    await resumenFondosBot(chatId)
+    return
+  }
+  // Actualizar valores por lista: "valores true value 3650, allianz 1260"
+  const actualizar = texto.match(/^\s*(?:valores?|actualiza(?:r)?)\b[:\s]*([\s\S]+)/i)
+  if (actualizar && actualizar[1].trim()) {
+    await actualizarValoresBot(chatId, actualizar[1].trim())
     return
   }
   const comoVa = t.match(/c[oó]mo va (.+)/)
@@ -196,6 +213,25 @@ async function registrarMovimiento(
     return
   }
 
+  // Aportación a inversión: intentar vincularla a un fondo por su nombre
+  let posicionId: string | null = null
+  if (p.tipo === "inversion") {
+    const { data: pos } = await supabase
+      .from("posiciones")
+      .select("*")
+      .eq("user_id", USER_ID())
+    const fondo = emparejarPosicion(p.concepto, (pos ?? []) as Posicion[])
+    if (fondo) {
+      posicionId = fondo.id
+      // El dinero entra en el fondo: sube su valor actual
+      await supabase
+        .from("posiciones")
+        .update({ valor_actual_cents: fondo.valor_actual_cents + p.importeCents })
+        .eq("id", fondo.id)
+        .eq("user_id", USER_ID())
+    }
+  }
+
   const { data: mov, error } = await supabase
     .from("movimientos")
     .insert({
@@ -205,6 +241,7 @@ async function registrarMovimiento(
       categoria_id: categoria.id,
       concepto: p.concepto,
       importe_cents: p.importeCents,
+      posicion_id: posicionId,
     })
     .select("*")
     .single()
@@ -484,6 +521,11 @@ const TEXTO_AYUDA = [
   "· <code>resumen</code> o <code>cuánto llevo este mes</code>",
   "· <code>últimos</code> — últimos movimientos",
   "· <code>cómo va comida</code> — presupuesto de una categoría",
+  "· <code>fondos</code> — cómo va tu cartera de inversión",
+  "",
+  "<b>Inversiones</b>:",
+  "· <code>valores true value 3650, allianz 1260</code> — actualiza valores",
+  "· <code>invertí 200 en true value</code> — registra una aportación",
   "",
   "<b>Corregir</b>:",
   "· <code>borra el último</code>",

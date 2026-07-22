@@ -4,13 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
 import { CATEGORIAS_DEFAULT } from "@/lib/finanzas/categorias-default"
-import { formatEUR } from "@/lib/finanzas/format"
+import { formatEUR, hoyISO } from "@/lib/finanzas/format"
 import type {
   Categoria,
   GastoFijo,
   Movimiento,
   NuevoMovimiento,
   Posicion,
+  Valoracion,
   TipoMovimiento,
 } from "@/lib/finanzas/types"
 
@@ -33,6 +34,7 @@ export function useFinanzas() {
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [movimientos, setMovimientos] = useState<Movimiento[]>([])
   const [posiciones, setPosiciones] = useState<Posicion[]>([])
+  const [valoraciones, setValoraciones] = useState<Valoracion[]>([])
   const [gastosFijos, setGastosFijos] = useState<GastoFijo[]>([])
   const [cargando, setCargando] = useState(true)
 
@@ -97,6 +99,15 @@ export function useFinanzas() {
         })
       }
 
+      // 3b. Valoraciones (histórico). Si la tabla no existe aún, no rompemos.
+      const { data: vals, error: errorVals } = await supabase
+        .from("valoraciones")
+        .select("*")
+        .order("fecha")
+      if (errorVals) {
+        console.warn("valoraciones no disponible:", errorVals.message)
+      }
+
       // 4. Gastos fijos
       const { data: fijos, error: errorFijos } = await supabase
         .from("gastos_fijos")
@@ -111,6 +122,7 @@ export function useFinanzas() {
       setCategorias(categoriasFinal)
       setMovimientos(movs ?? [])
       setPosiciones(pos ?? [])
+      setValoraciones(vals ?? [])
       setGastosFijos(fijos ?? [])
       setCargando(false)
     },
@@ -186,10 +198,23 @@ export function useFinanzas() {
   )
 
   const addPosicion = useCallback(
-    async (nombre: string): Promise<Posicion | null> => {
+    async (datos: {
+      nombre: string
+      tipo?: string | null
+      /** Valor actual (lo que vale hoy) */
+      valorCents: number
+      /** Coste base sembrado (aportado antes de registrar aquí) */
+      costeCents: number
+    }): Promise<Posicion | null> => {
+      const hoy = hoyISO()
       const { data, error } = await supabase
         .from("posiciones")
-        .insert({ nombre })
+        .insert({
+          nombre: datos.nombre,
+          tipo: datos.tipo ?? null,
+          valor_actual_cents: datos.valorCents,
+          coste_inicial_cents: datos.costeCents,
+        })
         .select("*")
         .single()
 
@@ -200,14 +225,34 @@ export function useFinanzas() {
         return null
       }
       setPosiciones((prev) => [...prev, data])
+
+      // Primera foto del valor (para que la gráfica arranque con un punto)
+      const { data: val } = await supabase
+        .from("valoraciones")
+        .insert({
+          posicion_id: data.id,
+          fecha: hoy,
+          valor_cents: datos.valorCents,
+        })
+        .select("*")
+        .single()
+      if (val) setValoraciones((prev) => [...prev, val])
+
       return data
     },
     [supabase]
   )
 
+  /**
+   * Registra el valor de una posición en una fecha (por defecto hoy):
+   * escribe una foto en `valoraciones` (una por día, upsert) y actualiza el
+   * valor actual denormalizado. Es lo que se hace cada viernes.
+   */
   const setValorPosicion = useCallback(
-    async (id: string, valorCents: number) => {
-      // Optimista con rollback
+    async (id: string, valorCents: number, fecha?: string) => {
+      const dia = fecha ?? hoyISO()
+
+      // Optimista sobre el valor actual (solo si la foto es de hoy o posterior)
       let anterior: Posicion[] = []
       setPosiciones((prev) => {
         anterior = prev
@@ -216,14 +261,51 @@ export function useFinanzas() {
         )
       })
 
-      const { error } = await supabase
-        .from("posiciones")
-        .update({ valor_actual_cents: valorCents })
-        .eq("id", id)
+      const { data: val, error } = await supabase
+        .from("valoraciones")
+        .upsert(
+          { posicion_id: id, fecha: dia, valor_cents: valorCents },
+          { onConflict: "posicion_id,fecha" }
+        )
+        .select("*")
+        .single()
 
       if (error) {
         setPosiciones(anterior)
-        toast.error("No se pudo actualizar el valor", {
+        toast.error("No se pudo guardar la valoración", {
+          description: error.message,
+        })
+        return
+      }
+
+      // Refleja la foto en el estado local (reemplaza la del mismo día si existía)
+      setValoraciones((prev) => [
+        ...prev.filter((v) => !(v.posicion_id === id && v.fecha === dia)),
+        val,
+      ])
+
+      // El valor actual denormalizado solo cambia si esta foto es la más reciente
+      await supabase
+        .from("posiciones")
+        .update({ valor_actual_cents: valorCents })
+        .eq("id", id)
+    },
+    [supabase]
+  )
+
+  const borrarPosicion = useCallback(
+    async (id: string) => {
+      let anterior: Posicion[] = []
+      setPosiciones((prev) => {
+        anterior = prev
+        return prev.filter((p) => p.id !== id)
+      })
+      setValoraciones((prev) => prev.filter((v) => v.posicion_id !== id))
+
+      const { error } = await supabase.from("posiciones").delete().eq("id", id)
+      if (error) {
+        setPosiciones(anterior)
+        toast.error("No se pudo borrar la posición", {
           description: error.message,
         })
       }
@@ -428,6 +510,7 @@ export function useFinanzas() {
     categoriasById,
     movimientos,
     posiciones,
+    valoraciones,
     gastosFijos,
     cargando,
     addMovimiento,
@@ -435,6 +518,7 @@ export function useFinanzas() {
     deleteMovimiento,
     addPosicion,
     setValorPosicion,
+    borrarPosicion,
     setPresupuestoCategoria,
     addGastoFijo,
     updateGastoFijo,

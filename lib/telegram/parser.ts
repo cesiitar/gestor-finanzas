@@ -223,6 +223,10 @@ const PALABRA_MONEDA = /^(€|euros?|eur|pavos?)$/i
 // Conceptos que delatan un ingreso aunque no se escriba "ingreso"
 const HUELE_A_INGRESO = /\b(n[oó]mina|sueldo|salario)\b/i
 
+// Verbos que delatan una aportación a inversión ("invertí 200 en...")
+const HUELE_A_INVERSION =
+  /\b(inviert[oe]|invert[ií]r?|aport[eéoa]r?|aportaci[oó]n|aportado)\b/i
+
 export function parsearMovimiento(texto: string): MensajeParseado | null {
   // 1º la fecha, para que sus números no se confundan con el importe
   const { fecha, resto, invalida } = extraerFecha(texto)
@@ -259,9 +263,17 @@ export function parsearMovimiento(texto: string): MensajeParseado | null {
     .join(" ")
     .trim()
 
-  // Sin tipo explícito: "nomina 1200" es un ingreso, no un gasto
+  // Sin tipo explícito: deducir por el concepto.
+  // "invertí 200 en X" → inversión; "nomina 1200" → ingreso; resto → gasto.
+  // Se compara sin tildes: el \b de la regex no reconoce vocales acentuadas
+  // finales ("invertí", "aporté"), así que "invertí" se prueba como "inverti".
   if (tipo === null) {
-    tipo = HUELE_A_INGRESO.test(concepto) ? "ingreso" : "gasto"
+    const conceptoNorm = sinTildes(concepto)
+    tipo = HUELE_A_INVERSION.test(conceptoNorm)
+      ? "inversion"
+      : HUELE_A_INGRESO.test(conceptoNorm)
+        ? "ingreso"
+        : "gasto"
   }
 
   return { tipo, importeCents, concepto, fecha }
