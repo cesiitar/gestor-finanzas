@@ -51,5 +51,6 @@ public/sw.js.map
 CLAUDE.md
 AGENTS.md
 .claude/
+.mcp.json
 prompt-app-finanzas.md
 docs/
