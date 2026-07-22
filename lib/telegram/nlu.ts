@@ -68,9 +68,23 @@ export async function interpretarMovimientoIA(
       .join(", ")
 
   const hoy = hoyISO()
+  const [hy, hm, hd] = hoy.split("-").map(Number)
+  const DIAS = [
+    "domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado",
+  ]
+  // Tabla de los últimos 10 días ya resueltos: la IA calcula fatal el día de
+  // la semana de una fecha, así que se lo damos hecho y solo tiene que mirar.
+  const calendario = [...Array(10)].map((_, i) => {
+    const d = new Date(Date.UTC(hy, hm - 1, hd - i))
+    const marca = i === 0 ? " (hoy)" : i === 1 ? " (ayer)" : ""
+    return `  ${d.toISOString().slice(0, 10)} = ${DIAS[d.getUTCDay()]}${marca}`
+  })
+
   const system = [
     "Eres el intérprete de mensajes de un bot de finanzas personales en español.",
-    `Hoy es ${hoy}.`,
+    `Hoy es ${DIAS[new Date(Date.UTC(hy, hm - 1, hd)).getUTCDay()]} ${hoy}.`,
+    "Calendario reciente ya resuelto (CONSÚLTALO, no calcules fechas tú):",
+    ...calendario,
     "Extrae del mensaje el movimiento de dinero, si lo hay.",
     "Categorías disponibles (elige EXACTAMENTE una del tipo correspondiente):",
     `- gasto: ${nombresPorTipo("gasto")}`,
@@ -78,8 +92,10 @@ export async function interpretarMovimientoIA(
     `- inversion: ${nombresPorTipo("inversion")}`,
     "Reglas:",
     "- 'pavos', 'euros', 'eur', '€' significan euros. Si no se indica moneda, son euros.",
-    "- Las fechas relativas ('ayer', 'anteayer', 'el lunes') se resuelven respecto a hoy y NUNCA pueden ser futuras.",
-    "- Si no se menciona fecha, usa la de hoy.",
+    "- Resuelve las fechas relativas mirando el calendario de arriba, no calculando.",
+    "- 'el finde' o 'el fin de semana' = el sábado más reciente del calendario.",
+    "- 'la semana pasada' = usa el lunes de la semana anterior (día laborable medio).",
+    "- Si la fecha resultante sería futura, usa hoy. Si no se menciona fecha, usa hoy.",
     "- Si el mensaje es una pregunta, un saludo o no describe un movimiento concreto, es_movimiento=false (rellena el resto con valores vacíos o 0).",
   ].join("\n")
 

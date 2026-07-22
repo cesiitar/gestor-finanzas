@@ -133,6 +133,18 @@ function extraerFecha(texto: string): FechaExtraida {
   if (/\bmañana\b/i.test(texto))
     return { fecha: sumarDias(hoy, 1), resto: texto.replace(/\bmañana\b/i, " ") }
 
+  // "hace 3 días" / "hace una semana" / "hace 2 semanas"
+  // (importante: si no se captura, el número se confundiría con el importe)
+  const NUM_PALABRA: Record<string, number> = {
+    un: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6,
+  }
+  const hace = texto.match(/\bhace\s+(\d+|un|una|dos|tres|cuatro|cinco|seis)\s+(d[ií]as?|semanas?)\b/i)
+  if (hace) {
+    const n = NUM_PALABRA[hace[1].toLowerCase()] ?? Number(hace[1])
+    const dias = /semana/i.test(hace[2]) ? n * 7 : n
+    return { fecha: sumarDias(hoy, -dias), resto: texto.replace(hace[0], " ") }
+  }
+
   // Días de la semana: "el jueves", "jueves pasado", "jueves que viene",
   // "próximo lunes"…  (lunes-domingo, con o sin tilde)
   const diaSem = texto.match(
