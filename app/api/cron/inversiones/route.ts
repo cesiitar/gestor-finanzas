@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { enviarMensaje } from "@/lib/telegram/api"
+import { construirLineaValores } from "@/lib/telegram/inversiones"
 import { formatEUR } from "@/lib/finanzas/format"
 import type { Posicion } from "@/lib/finanzas/types"
 
@@ -28,21 +29,14 @@ export async function GET(req: NextRequest) {
   const posiciones = (pos ?? []) as Posicion[]
   if (posiciones.length === 0) return Response.json({ ok: true, fondos: 0 })
 
-  // Ejemplo de respuesta con los nombres reales, para que solo tenga que
-  // cambiar los números.
-  const ejemplo = posiciones
-    .slice(0, 2)
-    .map((p) => `${p.nombre.split(" ").slice(0, 2).join(" ").toLowerCase()} ${Math.round(p.valor_actual_cents / 100)}`)
-    .join(", ")
-
   const lineas = [
     "📈 <b>Toca actualizar tus fondos</b>",
     "Fin de semana bursátil: ¿cómo van?",
     "",
     ...posiciones.map((p) => `· ${p.nombre}: ${formatEUR(p.valor_actual_cents)}`),
     "",
-    "Respóndeme con los valores nuevos en una línea, p. ej.:",
-    `<code>valores ${ejemplo}</code>`,
+    "Copia esto, cambia solo los números y envíamelo:",
+    `<code>${construirLineaValores(posiciones)}</code>`,
   ]
 
   await enviarMensaje(chatId, lineas.join("\n"))

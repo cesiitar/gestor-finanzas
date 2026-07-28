@@ -14,26 +14,54 @@ export function formatEUR(cents: number): string {
 }
 
 /**
- * Convierte lo que teclea el usuario ("12,50", "1.234,56", "12.50") a céntimos.
- * Devuelve null si no es un importe válido (> 0).
+ * Convierte lo que teclea el usuario a céntimos, tolerante con el formato:
+ * "12,50", "1.234,56", "12.50", "3.629" (miles), "3.629.54"… Devuelve el
+ * número en céntimos (puede ser 0 o negativo) o null si no es un número.
+ *
+ * Reglas es-ES: la coma SIEMPRE es decimal. Con solo puntos, se decide por
+ * contexto: un punto con 3 dígitos detrás es separador de miles ("3.629" =
+ * 3629); con 1–2 dígitos es decimal ("12.50" = 12,50).
  */
-export function parseImporteToCents(input: string): number | null {
-  const limpio = input.trim().replace(/[€\s]/g, "")
-  if (!limpio) return null
+export function parseNumeroToCents(input: string): number | null {
+  let s = input.trim().replace(/[€\s]/g, "")
+  const negativo = /^[-−]/.test(s)
+  s = s.replace(/^[-−]/, "")
+  if (!s) return null
 
-  let normalizado: string
-  if (limpio.includes(",")) {
-    // Formato español: el punto es separador de miles y la coma decimal
-    normalizado = limpio.replace(/\./g, "").replace(",", ".")
+  if (s.includes(",")) {
+    // Coma decimal; los puntos son separadores de miles
+    s = s.replace(/\./g, "").replace(",", ".")
   } else {
-    // Sin coma: un punto se interpreta como decimal ("12.50")
-    normalizado = limpio
+    const puntos = (s.match(/\./g) ?? []).length
+    if (puntos > 0) {
+      const idx = s.lastIndexOf(".")
+      const decimales = s.length - idx - 1
+      if (puntos > 1) {
+        // Varios puntos: el último es decimal si trae 1–2 dígitos; si no, todos miles
+        s =
+          decimales <= 2
+            ? s.slice(0, idx).replace(/\./g, "") + "." + s.slice(idx + 1)
+            : s.replace(/\./g, "")
+      } else if (decimales === 3) {
+        // Un punto con 3 dígitos detrás → miles ("3.629" = 3629)
+        s = s.replace(/\./g, "")
+      }
+      // Un punto con 1–2 dígitos detrás → decimal, se deja tal cual
+    }
   }
 
-  const valor = Number(normalizado)
-  if (!Number.isFinite(valor) || valor <= 0) return null
+  const valor = Number(s)
+  if (!Number.isFinite(valor)) return null
+  return Math.round((negativo ? -valor : valor) * 100)
+}
 
-  return Math.round(valor * 100)
+/**
+ * Igual que parseNumeroToCents pero solo acepta importes > 0 (para gastos,
+ * ingresos y aportaciones). Devuelve null si es 0, negativo o inválido.
+ */
+export function parseImporteToCents(input: string): number | null {
+  const cents = parseNumeroToCents(input)
+  return cents !== null && cents > 0 ? cents : null
 }
 
 /**

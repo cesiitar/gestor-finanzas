@@ -7,6 +7,8 @@ import { interpretarMovimientoIA } from "./nlu"
 import {
   resumenFondosBot,
   actualizarValoresBot,
+  plantillaActualizarBot,
+  crearFondoBot,
   emparejarPosicion,
 } from "./inversiones"
 import type { Posicion } from "@/lib/finanzas/types"
@@ -111,7 +113,18 @@ async function manejarTexto(chatId: number, texto: string) {
     await resumenFondosBot(chatId)
     return
   }
-  // Actualizar valores por lista: "valores true value 3650, allianz 1260"
+  // "actualizar" a secas → te devuelve la línea pre-rellenada para editar números
+  if (/^(actualizar|actualiza|actualizar (valores|fondos))$/.test(t)) {
+    await plantillaActualizarBot(chatId)
+    return
+  }
+  // Añadir un fondo: "nuevo fondo Nombre; valor; ganancia"
+  const nuevoFondo = texto.match(/^\s*nuevo\s+fondo\b[;:\s]*([\s\S]*)/i)
+  if (nuevoFondo) {
+    await crearFondoBot(chatId, nuevoFondo[1].trim())
+    return
+  }
+  // Actualizar valores por lista: "valores true value 3650; allianz 1260"
   const actualizar = texto.match(/^\s*(?:valores?|actualiza(?:r)?)\b[:\s]*([\s\S]+)/i)
   if (actualizar && actualizar[1].trim()) {
     await actualizarValoresBot(chatId, actualizar[1].trim())
@@ -524,8 +537,10 @@ const TEXTO_AYUDA = [
   "· <code>fondos</code> — cómo va tu cartera de inversión",
   "",
   "<b>Inversiones</b>:",
-  "· <code>valores true value 3650, allianz 1260</code> — actualiza valores",
+  "· <code>fondos</code> — cómo va tu cartera",
+  "· <code>actualizar</code> — te doy la lista lista para cambiar solo los números",
   "· <code>invertí 200 en true value</code> — registra una aportación",
+  "· <code>nuevo fondo Nombre; valor; ganancia</code> — añade un fondo",
   "",
   "<b>Corregir</b>:",
   "· <code>borra el último</code>",

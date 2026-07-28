@@ -21,6 +21,7 @@ import {
   formatPct,
   hoyISO,
   parseImporteToCents,
+  parseNumeroToCents,
   partesEUR,
 } from "@/lib/finanzas/format"
 import { useFinanzasCtx } from "./finanzas-provider"
@@ -42,16 +43,9 @@ function colorGanancia(cents: number): string {
   return "text-neutral-400"
 }
 
-/** Importe con signo (permite negativos y 0): "−71,83" → -7183 */
+/** Ganancia (permite negativos y 0): vacío = 0; delega en el parser robusto */
 function parseGananciaToCents(input: string): number | null {
-  const t = input.trim().replace(/[€\s]/g, "")
-  if (t === "") return 0
-  const neg = /^[-−]/.test(t)
-  let num = t.replace(/^[-−]/, "")
-  num = num.includes(",") ? num.replace(/\./g, "").replace(",", ".") : num
-  const v = Number(num)
-  if (!Number.isFinite(v)) return null
-  return Math.round((neg ? -v : v) * 100)
+  return input.trim() === "" ? 0 : parseNumeroToCents(input)
 }
 
 /** "2026-07-18" → "18 jul" */

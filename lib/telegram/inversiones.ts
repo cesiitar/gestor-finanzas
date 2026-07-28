@@ -1,7 +1,31 @@
 import { createAdminClient } from "@/lib/supabase/admin"
-import { formatEUR, formatPct, hoyISO, parseImporteToCents } from "@/lib/finanzas/format"
+import {
+  formatEUR,
+  formatPct,
+  hoyISO,
+  parseImporteToCents,
+  parseNumeroToCents,
+} from "@/lib/finanzas/format"
 import type { Movimiento, Posicion } from "@/lib/finanzas/types"
 import { enviarMensaje } from "./api"
+
+/** Importe en céntimos → "3629,54" (coma decimal, sin miles ni €) */
+const numPlano = (cents: number) =>
+  (cents / 100).toLocaleString("es-ES", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: false,
+  })
+
+/** Línea pre-rellenada para actualizar valores: solo hay que cambiar números */
+export function construirLineaValores(posiciones: Posicion[]): string {
+  return (
+    "valores " +
+    posiciones
+      .map((p) => `${p.nombre} ${numPlano(p.valor_actual_cents)}`)
+      .join("; ")
+  )
+}
 
 /**
  * Inversiones por Telegram: ver la cartera, actualizar valores por lista
@@ -116,8 +140,10 @@ export async function actualizarValoresBot(chatId: number | string, resto: strin
   }
 
   const hoy = hoyISO()
+  // Separadores: salto de línea, ';' o coma SOLO si no es decimal (la coma
+  // entre dígitos, "3629,54", no separa; la coma antes de un nombre, sí).
   const items = resto
-    .split(/[,\n;]+/)
+    .split(/[\n;]+|,(?=\s*[^\d\s])/)
     .map((s) => s.trim())
     .filter(Boolean)
 
@@ -169,5 +195,102 @@ export async function actualizarValoresBot(chatId: number | string, resto: strin
   await enviarMensaje(
     chatId,
     ["📈 <b>Valores actualizados</b>", ...lineas].join("\n")
+  )
+}
+
+/**
+ * Envía la línea pre-rellenada con los valores actuales: el usuario solo
+ * cambia los números y la reenvía (no tiene que escribir los nombres).
+ */
+export async function plantillaActualizarBot(chatId: number | string) {
+  const posiciones = await cargarPosiciones()
+  if (posiciones.length === 0) {
+    await enviarMensaje(chatId, "Aún no tienes fondos. Añade uno con «nuevo fondo».")
+    return
+  }
+  await enviarMensaje(
+    chatId,
+    [
+      "📈 <b>Actualizar valores</b>",
+      "Copia esto, cambia solo los números y envíamelo:",
+      "",
+      `<code>${construirLineaValores(posiciones)}</code>`,
+    ].join("\n")
+  )
+}
+
+/**
+ * Crea un fondo desde el bot: "nuevo fondo Nombre; valor; ganancia".
+ * La ganancia es opcional (por defecto 0). Separador ';' para no chocar con
+ * la coma decimal.
+ */
+export async function crearFondoBot(chatId: number | string, resto: string) {
+  const partes = resto.split(";").map((s) => s.trim())
+  const nombre = partes[0] ?? ""
+  const valor = parseImporteToCents(partes[1] ?? "")
+  const ganancia = partes[2] !== undefined && partes[2] !== "" ? parseNumeroToCents(partes[2]) : 0
+
+  if (!nombre || valor === null || ganancia === null) {
+    await enviarMensaje(
+      chatId,
+      [
+        "Para añadir un fondo:",
+        "<code>nuevo fondo Nombre; valor; ganancia</code>",
+        "Ejemplo:",
+        "<code>nuevo fondo True Value Fi; 3629,54; 429,48</code>",
+        "(la ganancia puede ser negativa o dejarse vacía)",
+      ].join("\n")
+    )
+    return
+  }
+
+  const coste = valor - ganancia
+  if (coste < 0) {
+    await enviarMensaje(chatId, "⚠️ La ganancia no puede ser mayor que el valor.")
+    return
+  }
+
+  const supabase = createAdminClient()
+  const { data: existe } = await supabase
+    .from("posiciones")
+    .select("id")
+    .eq("user_id", USER_ID())
+    .eq("nombre", nombre)
+    .limit(1)
+  if (existe && existe.length > 0) {
+    await enviarMensaje(chatId, `Ya tienes un fondo llamado «${nombre}».`)
+    return
+  }
+
+  const { data: pos, error } = await supabase
+    .from("posiciones")
+    .insert({
+      user_id: USER_ID(),
+      nombre,
+      tipo: "fondo",
+      valor_actual_cents: valor,
+      coste_inicial_cents: coste,
+    })
+    .select("*")
+    .single()
+  if (error || !pos) {
+    await enviarMensaje(chatId, `⚠️ No se pudo crear: ${error?.message ?? "error"}`)
+    return
+  }
+
+  await supabase.from("valoraciones").insert({
+    user_id: USER_ID(),
+    posicion_id: (pos as Posicion).id,
+    fecha: hoyISO(),
+    valor_cents: valor,
+  })
+
+  const signo = ganancia > 0 ? "+" : ganancia < 0 ? "−" : ""
+  await enviarMensaje(
+    chatId,
+    [
+      `✅ <b>Fondo añadido</b>: ${nombre}`,
+      `Valor ${formatEUR(valor)} · Ganancia ${signo}${formatEUR(Math.abs(ganancia))}`,
+    ].join("\n")
   )
 }
