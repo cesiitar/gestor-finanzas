@@ -11,6 +11,11 @@ import {
   crearFondoBot,
   emparejarPosicion,
 } from "./inversiones"
+import {
+  registrarDeudaBot,
+  registrarNotaBot,
+  consultarDeudasBot,
+} from "./pendientes"
 import type { Posicion } from "@/lib/finanzas/types"
 
 /**
@@ -133,6 +138,31 @@ async function manejarTexto(chatId: number, texto: string) {
   const comoVa = t.match(/c[oó]mo va (.+)/)
   if (comoVa) {
     await estadoPresupuesto(chatId, comoVa[1].trim())
+    return
+  }
+
+  // ── Pendientes (deudas, notas) ──
+  // Consultar deudas
+  if (/^(deudas|qui[eé]n me debe|a qui[eé]n debo|qu[eé] debo)$/.test(t)) {
+    await consultarDeudasBot(chatId)
+    return
+  }
+  // "me debe Juan 20 cena" → cobro
+  const meDebe = texto.match(/^\s*me\s+deben?\b\s*([\s\S]+)/i)
+  if (meDebe) {
+    await registrarDeudaBot(chatId, meDebe[1].trim(), "cobro")
+    return
+  }
+  // "debo Maria 50 comida" → pago
+  const debo = texto.match(/^\s*(?:yo\s+)?debo\b\s*([\s\S]+)/i)
+  if (debo) {
+    await registrarDeudaBot(chatId, debo[1].trim(), "pago")
+    return
+  }
+  // "nota cancelar Netflix" → tarea
+  const nota = texto.match(/^\s*\/?nota\b[:\s]*([\s\S]*)/i)
+  if (nota) {
+    await registrarNotaBot(chatId, nota[1].trim())
     return
   }
 
@@ -541,6 +571,12 @@ const TEXTO_AYUDA = [
   "· <code>actualizar</code> — te doy la lista lista para cambiar solo los números",
   "· <code>invertí 200 en true value</code> — registra una aportación",
   "· <code>nuevo fondo Nombre; valor; ganancia</code> — añade un fondo",
+  "",
+  "<b>Deudas y notas</b>:",
+  "· <code>me debe Juan 20 la cena</code> — apunta lo que te deben",
+  "· <code>debo Maria 50 la comida</code> — apunta lo que debes",
+  "· <code>deudas</code> — quién te debe y a quién debes",
+  "· <code>nota cancelar Netflix</code> — un recordatorio (fecha y aviso en la app)",
   "",
   "<b>Corregir</b>:",
   "· <code>borra el último</code>",

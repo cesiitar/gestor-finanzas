@@ -24,6 +24,7 @@ const comandos = [
   { command: "fondos", description: "Estado de tu cartera" },
   { command: "actualizar", description: "Actualizar el valor de tus fondos" },
   { command: "nuevofondo", description: "Añadir un fondo nuevo" },
+  { command: "deudas", description: "Quién te debe y a quién debes" },
   { command: "ayuda", description: "Ver todo lo que sé hacer" },
 ]
 

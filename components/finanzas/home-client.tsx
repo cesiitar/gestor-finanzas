@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Settings } from "lucide-react"
+import { Settings, CalendarClock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatEUR, hoyISO } from "@/lib/finanzas/format"
 import { useFinanzasCtx } from "./finanzas-provider"
@@ -102,13 +102,22 @@ export function HomeClient() {
             </p>
           )}
         </div>
-        <Link
-          href="/ajustes"
-          aria-label="Ajustes"
-          className="flex size-11 items-center justify-center rounded-full border border-white/[0.07] bg-white/[0.03] text-neutral-400 transition-colors hover:text-neutral-100"
-        >
-          <Settings className="size-[18px]" aria-hidden />
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/pendientes"
+            aria-label="Pendientes"
+            className="flex size-11 items-center justify-center rounded-full border border-white/[0.07] bg-white/[0.03] text-neutral-400 transition-colors hover:text-neutral-100"
+          >
+            <CalendarClock className="size-[18px]" aria-hidden />
+          </Link>
+          <Link
+            href="/ajustes"
+            aria-label="Ajustes"
+            className="flex size-11 items-center justify-center rounded-full border border-white/[0.07] bg-white/[0.03] text-neutral-400 transition-colors hover:text-neutral-100"
+          >
+            <Settings className="size-[18px]" aria-hidden />
+          </Link>
+        </div>
       </header>
 
       <MesSelector mes={mes} onChange={setMes} />

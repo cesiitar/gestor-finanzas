@@ -78,6 +78,55 @@ export async function GET(req: NextRequest) {
     )
   }
 
+  // Recordatorios de pendientes: avisar si hoy = fecha − alguno de los días
+  // configurados (recordar_dias). Ej: fecha 30, recordar_dias {1,0} → avisa
+  // el 29 y el 30.
+  let recordatorios = 0
+  if (chatId) {
+    const { data: pends } = await supabase
+      .from("pendientes")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("hecho", false)
+      .not("fecha", "is", null)
+      .not("recordar_dias", "is", null)
+
+    const restaDias = (iso: string, dias: number) => {
+      const [yy, mm, dd] = iso.split("-").map(Number)
+      return new Date(Date.UTC(yy, mm - 1, dd - dias)).toISOString().slice(0, 10)
+    }
+    const diasHasta = (iso: string) => {
+      const [yy, mm, dd] = iso.split("-").map(Number)
+      const objetivo = Date.UTC(yy, mm - 1, dd)
+      const hoyUTC = Date.UTC(y, m - 1, d)
+      return Math.round((objetivo - hoyUTC) / 86400000)
+    }
+
+    const avisos: string[] = []
+    for (const p of (pends ?? []) as {
+      tipo: string
+      concepto: string
+      persona: string | null
+      importe_cents: number | null
+      fecha: string
+      recordar_dias: number[]
+    }[]) {
+      const toca = (p.recordar_dias ?? []).some((off) => restaDias(p.fecha, off) === hoy)
+      if (!toca) continue
+      const falta = diasHasta(p.fecha)
+      const cuando = falta <= 0 ? "hoy" : falta === 1 ? "mañana" : `en ${falta} días`
+      const dinero = p.importe_cents != null ? ` · ${formatEUR(p.importe_cents)}` : ""
+      const quien = p.persona ? ` (${p.persona})` : ""
+      const emoji = p.tipo === "cobro" ? "📥" : p.tipo === "pago" ? "📤" : "🔔"
+      avisos.push(`${emoji} <b>${p.concepto}</b>${quien}${dinero} — ${cuando}`)
+    }
+
+    if (avisos.length > 0) {
+      await enviarMensaje(chatId, `🔔 <b>Recordatorios</b>\n${avisos.join("\n")}`)
+      recordatorios = avisos.length
+    }
+  }
+
   // Día 1: copia de seguridad del mes anterior por Telegram (CSV)
   let backup = false
   if (d === 1 && chatId) {
@@ -123,5 +172,10 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return Response.json({ ok: true, registrados: registrados.length, backup })
+  return Response.json({
+    ok: true,
+    registrados: registrados.length,
+    recordatorios,
+    backup,
+  })
 }

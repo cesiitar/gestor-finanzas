@@ -67,6 +67,29 @@ export interface Valoracion {
   created_at: string
 }
 
+/**
+ * Pendiente: deuda, cobro o recordatorio.
+ * 'cobro' = me deben · 'pago' = yo debo · 'tarea' = nota/recordatorio.
+ */
+export interface Pendiente {
+  id: string
+  user_id: string
+  tipo: "cobro" | "pago" | "tarea"
+  concepto: string
+  /** Persona implicada (para cobro/pago); null en tareas */
+  persona: string | null
+  /** Importe en céntimos (para cobro/pago); null en tareas */
+  importe_cents: number | null
+  /** Fecha del cobro/pago/evento (YYYY-MM-DD); null si no tiene */
+  fecha: string | null
+  /** Días antes de `fecha` en que avisar por Telegram (p. ej. [1, 0]) */
+  recordar_dias: number[] | null
+  hecho: boolean
+  created_at: string
+}
+
+export type TipoPendiente = Pendiente["tipo"]
+
 /** Datos que introduce el usuario al registrar un movimiento */
 export interface NuevoMovimiento {
   fecha: string

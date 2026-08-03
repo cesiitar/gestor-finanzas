@@ -10,9 +10,11 @@ import type {
   GastoFijo,
   Movimiento,
   NuevoMovimiento,
+  Pendiente,
   Posicion,
   Valoracion,
   TipoMovimiento,
+  TipoPendiente,
 } from "@/lib/finanzas/types"
 
 /** Orden de la lista: fecha más reciente primero; a igual fecha, lo último registrado arriba */
@@ -36,6 +38,7 @@ export function useFinanzas() {
   const [posiciones, setPosiciones] = useState<Posicion[]>([])
   const [valoraciones, setValoraciones] = useState<Valoracion[]>([])
   const [gastosFijos, setGastosFijos] = useState<GastoFijo[]>([])
+  const [pendientes, setPendientes] = useState<Pendiente[]>([])
   const [cargando, setCargando] = useState(true)
 
   const cargar = useCallback(
@@ -119,11 +122,21 @@ export function useFinanzas() {
         console.warn("gastos_fijos no disponible:", errorFijos.message)
       }
 
+      // 5. Pendientes (deudas, cobros y recordatorios)
+      const { data: pends, error: errorPends } = await supabase
+        .from("pendientes")
+        .select("*")
+        .order("created_at", { ascending: false })
+      if (errorPends) {
+        console.warn("pendientes no disponible:", errorPends.message)
+      }
+
       setCategorias(categoriasFinal)
       setMovimientos(movs ?? [])
       setPosiciones(pos ?? [])
       setValoraciones(vals ?? [])
       setGastosFijos(fijos ?? [])
+      setPendientes(pends ?? [])
       setCargando(false)
     },
     [supabase]
@@ -308,6 +321,108 @@ export function useFinanzas() {
         toast.error("No se pudo borrar la posición", {
           description: error.message,
         })
+      }
+    },
+    [supabase]
+  )
+
+  // ---- Pendientes (deudas, cobros y recordatorios) ----
+  const addPendiente = useCallback(
+    async (datos: {
+      tipo: TipoPendiente
+      concepto: string
+      persona?: string | null
+      importeCents?: number | null
+      fecha?: string | null
+      recordarDias?: number[] | null
+    }): Promise<Pendiente | null> => {
+      const { data, error } = await supabase
+        .from("pendientes")
+        .insert({
+          tipo: datos.tipo,
+          concepto: datos.concepto,
+          persona: datos.persona ?? null,
+          importe_cents: datos.importeCents ?? null,
+          fecha: datos.fecha ?? null,
+          recordar_dias: datos.recordarDias ?? null,
+        })
+        .select("*")
+        .single()
+      if (error) {
+        toast.error("No se pudo guardar", { description: error.message })
+        return null
+      }
+      setPendientes((prev) => [data, ...prev])
+      return data
+    },
+    [supabase]
+  )
+
+  const updatePendiente = useCallback(
+    async (
+      id: string,
+      cambios: Partial<
+        Pick<
+          Pendiente,
+          | "tipo"
+          | "concepto"
+          | "persona"
+          | "importe_cents"
+          | "fecha"
+          | "recordar_dias"
+          | "hecho"
+        >
+      >
+    ) => {
+      let anterior: Pendiente[] = []
+      setPendientes((prev) => {
+        anterior = prev
+        return prev.map((p) => (p.id === id ? { ...p, ...cambios } : p))
+      })
+      const { error } = await supabase.from("pendientes").update(cambios).eq("id", id)
+      if (error) {
+        setPendientes(anterior)
+        toast.error("No se pudo actualizar", { description: error.message })
+      }
+    },
+    [supabase]
+  )
+
+  const togglePendienteHecho = useCallback(
+    async (id: string) => {
+      let hechoNuevo = false
+      setPendientes((prev) =>
+        prev.map((p) => {
+          if (p.id !== id) return p
+          hechoNuevo = !p.hecho
+          return { ...p, hecho: hechoNuevo }
+        })
+      )
+      const { error } = await supabase
+        .from("pendientes")
+        .update({ hecho: hechoNuevo })
+        .eq("id", id)
+      if (error) {
+        setPendientes((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, hecho: !hechoNuevo } : p))
+        )
+        toast.error("No se pudo actualizar", { description: error.message })
+      }
+    },
+    [supabase]
+  )
+
+  const borrarPendiente = useCallback(
+    async (id: string) => {
+      let anterior: Pendiente[] = []
+      setPendientes((prev) => {
+        anterior = prev
+        return prev.filter((p) => p.id !== id)
+      })
+      const { error } = await supabase.from("pendientes").delete().eq("id", id)
+      if (error) {
+        setPendientes(anterior)
+        toast.error("No se pudo borrar", { description: error.message })
       }
     },
     [supabase]
@@ -512,6 +627,7 @@ export function useFinanzas() {
     posiciones,
     valoraciones,
     gastosFijos,
+    pendientes,
     cargando,
     addMovimiento,
     updateMovimiento,
@@ -519,6 +635,10 @@ export function useFinanzas() {
     addPosicion,
     setValorPosicion,
     borrarPosicion,
+    addPendiente,
+    updatePendiente,
+    togglePendienteHecho,
+    borrarPendiente,
     setPresupuestoCategoria,
     addGastoFijo,
     updateGastoFijo,
