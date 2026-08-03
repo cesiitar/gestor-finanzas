@@ -118,8 +118,8 @@ async function manejarTexto(chatId: number, texto: string) {
     await plantillaActualizarBot(chatId)
     return
   }
-  // Añadir un fondo: "nuevo fondo Nombre; valor; ganancia"
-  const nuevoFondo = texto.match(/^\s*nuevo\s+fondo\b[;:\s]*([\s\S]*)/i)
+  // Añadir un fondo: "nuevo fondo Nombre; valor; ganancia" o "/nuevofondo …"
+  const nuevoFondo = texto.match(/^\s*\/?nuevo\s*fondo\b[;:\s]*([\s\S]*)/i)
   if (nuevoFondo) {
     await crearFondoBot(chatId, nuevoFondo[1].trim())
     return
