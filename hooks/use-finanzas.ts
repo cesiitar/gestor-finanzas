@@ -389,14 +389,13 @@ export function useFinanzas() {
   )
 
   const togglePendienteHecho = useCallback(
-    async (id: string) => {
-      let hechoNuevo = false
+    async (id: string, hechoActual: boolean) => {
+      // El nuevo valor se calcula AQUÍ (síncrono). Antes se calculaba dentro
+      // del updater de setState, que corre después: el UPDATE mandaba el valor
+      // viejo y nunca se marcaba como hecho.
+      const hechoNuevo = !hechoActual
       setPendientes((prev) =>
-        prev.map((p) => {
-          if (p.id !== id) return p
-          hechoNuevo = !p.hecho
-          return { ...p, hecho: hechoNuevo }
-        })
+        prev.map((p) => (p.id === id ? { ...p, hecho: hechoNuevo } : p))
       )
       const { error } = await supabase
         .from("pendientes")
@@ -404,7 +403,7 @@ export function useFinanzas() {
         .eq("id", id)
       if (error) {
         setPendientes((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, hecho: !hechoNuevo } : p))
+          prev.map((p) => (p.id === id ? { ...p, hecho: hechoActual } : p))
         )
         toast.error("No se pudo actualizar", { description: error.message })
       }

@@ -149,7 +149,7 @@ export function PendientesView() {
                 <FilaPendiente
                   key={p.id}
                   p={p}
-                  onToggle={() => togglePendienteHecho(p.id)}
+                  onToggle={() => togglePendienteHecho(p.id, p.hecho)}
                   onEditar={() => abrirEdicion(p)}
                 />
               ))}
@@ -166,7 +166,7 @@ export function PendientesView() {
                 <FilaPendiente
                   key={p.id}
                   p={p}
-                  onToggle={() => togglePendienteHecho(p.id)}
+                  onToggle={() => togglePendienteHecho(p.id, p.hecho)}
                   onEditar={() => borrarPendiente(p.id)}
                   editarEsBorrar
                 />
