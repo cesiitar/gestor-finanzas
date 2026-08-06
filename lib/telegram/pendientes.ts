@@ -94,6 +94,64 @@ export async function registrarNotaBot(chatId: number | string, texto: string) {
   )
 }
 
+const norm = (s: string) =>
+  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim()
+
+/**
+ * Marca un pendiente como hecho por su persona o concepto:
+ * "cobrado Juan", "pagado Maria", "hecho Netflix". El verbo orienta el tipo
+ * (cobrado→cobro, pagado→pago) para desempatar.
+ */
+export async function marcarHechoBot(
+  chatId: number | string,
+  texto: string,
+  prefiere: "cobro" | "pago" | null
+) {
+  const busqueda = norm(texto)
+  if (!busqueda) {
+    await enviarMensaje(chatId, "Dime cuál: <code>cobrado Juan</code>")
+    return
+  }
+
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("pendientes")
+    .select("*")
+    .eq("user_id", USER_ID())
+    .eq("hecho", false)
+
+  const todos = (data ?? []) as Pendiente[]
+  const coincide = (p: Pendiente) =>
+    norm(`${p.persona ?? ""} ${p.concepto}`).includes(busqueda)
+
+  let candidatos = todos.filter(coincide)
+  // Si el verbo orienta el tipo y así se desempata, filtra por tipo
+  if (prefiere && candidatos.filter((p) => p.tipo === prefiere).length > 0) {
+    candidatos = candidatos.filter((p) => p.tipo === prefiere)
+  }
+
+  if (candidatos.length === 0) {
+    await enviarMensaje(chatId, `No encuentro nada pendiente con «${texto}».`)
+    return
+  }
+  if (candidatos.length > 1) {
+    const lista = candidatos
+      .slice(0, 6)
+      .map((p) => `· ${p.persona ?? p.concepto}${p.importe_cents != null ? ` (${formatEUR(p.importe_cents)})` : ""}`)
+      .join("\n")
+    await enviarMensaje(
+      chatId,
+      `Hay varios que encajan, afina un poco:\n${lista}`
+    )
+    return
+  }
+
+  const p = candidatos[0]
+  await supabase.from("pendientes").update({ hecho: true }).eq("id", p.id)
+  const detalle = `${p.persona ?? p.concepto}${p.importe_cents != null ? ` · ${formatEUR(p.importe_cents)}` : ""}`
+  await enviarMensaje(chatId, `✅ Hecho: ${detalle}`)
+}
+
 /** "quién me debe" / "deudas" → lista de cobros y pagos con totales */
 export async function consultarDeudasBot(chatId: number | string) {
   const supabase = createAdminClient()

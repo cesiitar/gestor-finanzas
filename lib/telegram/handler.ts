@@ -15,6 +15,7 @@ import {
   registrarDeudaBot,
   registrarNotaBot,
   consultarDeudasBot,
+  marcarHechoBot,
 } from "./pendientes"
 import type { Posicion } from "@/lib/finanzas/types"
 
@@ -145,6 +146,22 @@ async function manejarTexto(chatId: number, texto: string) {
   // Consultar deudas
   if (/^(deudas|qui[eé]n me debe|a qui[eé]n debo|qu[eé] debo)$/.test(t)) {
     await consultarDeudasBot(chatId)
+    return
+  }
+  // Marcar como hecho: "cobrado Juan", "pagado Maria", "hecho Netflix"
+  const cobrado = texto.match(/^\s*(?:cobrad[oa]|me\s+(?:pag[oó]|pagaron))\b\s*([\s\S]+)/i)
+  if (cobrado) {
+    await marcarHechoBot(chatId, cobrado[1].trim(), "cobro")
+    return
+  }
+  const pagado = texto.match(/^\s*pagad[oa]\b\s*([\s\S]+)/i)
+  if (pagado) {
+    await marcarHechoBot(chatId, pagado[1].trim(), "pago")
+    return
+  }
+  const hechoCmd = texto.match(/^\s*hech[oa]\b\s*([\s\S]+)/i)
+  if (hechoCmd) {
+    await marcarHechoBot(chatId, hechoCmd[1].trim(), null)
     return
   }
   // "me debe Juan 20 cena" → cobro
@@ -576,6 +593,7 @@ const TEXTO_AYUDA = [
   "· <code>me debe Juan 20 la cena</code> — apunta lo que te deben",
   "· <code>debo Maria 50 la comida</code> — apunta lo que debes",
   "· <code>deudas</code> — quién te debe y a quién debes",
+  "· <code>cobrado Juan</code> / <code>pagado Maria</code> — marcar saldado",
   "· <code>nota cancelar Netflix</code> — un recordatorio (fecha y aviso en la app)",
   "",
   "<b>Corregir</b>:",
