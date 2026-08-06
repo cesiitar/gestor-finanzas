@@ -121,11 +121,18 @@ export async function marcarHechoBot(
     .eq("hecho", false)
 
   const todos = (data ?? []) as Pendiente[]
-  const coincide = (p: Pendiente) =>
-    norm(`${p.persona ?? ""} ${p.concepto}`).includes(busqueda)
+  // Todas las palabras buscadas deben aparecer (por palabra, no substring del todo)
+  const palabras = busqueda.split(/\s+/).filter(Boolean)
+  const casa = (heno: string) => palabras.every((w) => norm(heno).includes(w))
 
-  let candidatos = todos.filter(coincide)
-  // Si el verbo orienta el tipo y así se desempata, filtra por tipo
+  // Prioridad: primero por NOMBRE de la persona; si no, por persona+concepto
+  const porPersona = todos.filter((p) => p.persona && casa(p.persona))
+  let candidatos =
+    porPersona.length > 0
+      ? porPersona
+      : todos.filter((p) => casa(`${p.persona ?? ""} ${p.concepto}`))
+
+  // El verbo orienta el tipo (cobrado→cobro, pagado→pago) para desempatar
   if (prefiere && candidatos.filter((p) => p.tipo === prefiere).length > 0) {
     candidatos = candidatos.filter((p) => p.tipo === prefiere)
   }
@@ -137,11 +144,14 @@ export async function marcarHechoBot(
   if (candidatos.length > 1) {
     const lista = candidatos
       .slice(0, 6)
-      .map((p) => `· ${p.persona ?? p.concepto}${p.importe_cents != null ? ` (${formatEUR(p.importe_cents)})` : ""}`)
+      .map(
+        (p) =>
+          `· ${p.persona ?? "—"}: ${p.concepto}${p.importe_cents != null ? ` (${formatEUR(p.importe_cents)})` : ""}`
+      )
       .join("\n")
     await enviarMensaje(
       chatId,
-      `Hay varios que encajan, afina un poco:\n${lista}`
+      `Hay varios de esa persona. Añade el concepto (p. ej. <code>cobrado ${texto} ${candidatos[0].concepto}</code>):\n${lista}`
     )
     return
   }
