@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
   const lineas = [
     "📈 <b>Toca actualizar tus fondos</b>",
-    "Fin de semana bursátil: ¿cómo van?",
+    "Repaso quincenal: ¿cómo van?",
     "",
     ...posiciones.map((p) => `· ${p.nombre}: ${formatEUR(p.valor_actual_cents)}`),
     "",

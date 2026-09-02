@@ -7,12 +7,16 @@ import type { TipoMovimiento } from "./types"
  */
 export const CATEGORIAS_DEFAULT: { nombre: string; tipo: TipoMovimiento }[] = [
   // Gastos
-  { nombre: "Comida", tipo: "gasto" },
+  { nombre: "Supermercados", tipo: "gasto" },
+  { nombre: "Restaurantes", tipo: "gasto" },
   { nombre: "Transporte", tipo: "gasto" },
   { nombre: "Ocio", tipo: "gasto" },
+  { nombre: "Fiesta", tipo: "gasto" },
+  { nombre: "Peluquería", tipo: "gasto" },
   { nombre: "Hogar", tipo: "gasto" },
   { nombre: "Salud", tipo: "gasto" },
   { nombre: "Compras", tipo: "gasto" },
+  { nombre: "Apuestas", tipo: "gasto" },
   { nombre: "Suscripciones", tipo: "gasto" },
   { nombre: "Otros gastos", tipo: "gasto" },
   // Ingresos

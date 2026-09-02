@@ -284,11 +284,15 @@ export function parsearMovimiento(texto: string): MensajeParseado | null {
  * Si el concepto contiene la palabra, se asigna esa categoría directamente.
  */
 const KEYWORDS: [RegExp, string][] = [
-  [/mercadona|lidl|carrefour|aldi|dia\b|super|comida|cena|comer|desayun|restaurante|bar\b|kebab|pizza|burguer|almuerzo|caf[eé]|panader/i, "Comida"],
+  [/mercadona|lidl|carrefour|aldi|dia\b|alcampo|eroski|consum|mercado|supermercado|super\b/i, "Supermercados"],
+  [/restaurante|comida|cena|comer\b|desayun|almuerzo|kebab|pizza|burguer|hamburgues|bar\b|caf[eé]|cafeter|panader|bocadill/i, "Restaurantes"],
   [/gasolina|diesel|repostar|bus|metro|taxi|uber|cabify|tren|renfe|avion|vuelo|parking|peaje|itv|taller|coche|moto/i, "Transporte"],
-  [/cine|ocio|fiesta|copas|concierto|entrada|juego|steam|play|futbol|f[uú]tbol|padel|p[aá]del|viaje|hotel/i, "Ocio"],
+  [/peluquer|barber|corte de pelo|est[eé]tica|manicura/i, "Peluquería"],
+  [/apuesta|bet365|bwin|codere|luckia|winamax|casino|loter[ií]a|quiniela|primitiva|euromill/i, "Apuestas"],
+  [/fiesta|discoteca|disco\b|botell[oó]n|copas|festival|garito/i, "Fiesta"],
+  [/cine|ocio|concierto|entrada|juego|steam|play|f[uú]tbol|padel|p[aá]del|viaje|hotel|museo|teatro/i, "Ocio"],
   [/luz\b|agua\b|gas\b|alquiler|hipoteca|internet|wifi|fibra|comunidad|hogar|ikea|mueble|electrodom/i, "Hogar"],
-  [/farmacia|m[eé]dico|dentista|fisio|gimnasio|gym|salud|[oó]ptica|anal[ií]tica|peluquer/i, "Salud"],
+  [/farmacia|m[eé]dico|dentista|fisio|gimnasio|gym|salud|[oó]ptica|anal[ií]tica/i, "Salud"],
   [/ropa|zapatilla|zapato|amazon|aliexpress|regalo|perfume|tecnolog|m[oó]vil|ordenador/i, "Compras"],
   [/netflix|spotify|hbo|disney|dazn|suscripci[oó]n|prime|icloud|drive|chatgpt|claude|dominio/i, "Suscripciones"],
   [/n[oó]mina|sueldo|salario|paga\b/i, "Nómina"],
