@@ -228,7 +228,7 @@ async function manejarTexto(chatId: number, texto: string) {
 // ---------------------------------------------------------------------------
 // Registrar movimiento
 // ---------------------------------------------------------------------------
-async function registrarMovimiento(
+export async function registrarMovimiento(
   chatId: number,
   p: {
     tipo: TipoMovimiento
