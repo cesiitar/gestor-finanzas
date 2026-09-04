@@ -42,7 +42,10 @@ async function manejar(req: NextRequest): Promise<Response> {
     }
   }
 
-  const importeCents = parseImporteToCents(importeStr)
+  // El importe puede venir "sucio" (p. ej. "14,98 € con Tú NX ••0332"):
+  // se extrae el primer número con 2 decimales; si no, se intenta tal cual.
+  const trozo = importeStr.match(/\d{1,7}[.,]\d{2}/)
+  const importeCents = parseImporteToCents(trozo ? trozo[0] : importeStr)
   const chatId = Number((process.env.TELEGRAM_CHAT_ID ?? "").trim())
 
   if (importeCents === null) {
