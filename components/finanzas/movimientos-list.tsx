@@ -89,14 +89,8 @@ function FilaMovimiento({
         onSelect && "cursor-pointer transition-colors hover:bg-white/[0.03]"
       )}
     >
-      <span
-        className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-xl",
-          color.fondo
-        )}
-        aria-hidden
-      >
-        <Icono className={cn("size-[18px]", color.texto)} strokeWidth={2.2} />
+      <span className="flex size-9 shrink-0 items-center justify-center" aria-hidden>
+        <Icono className={cn("size-[19px]", color.texto)} strokeWidth={1.6} />
       </span>
 
       <div className="min-w-0 flex-1">

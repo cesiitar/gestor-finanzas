@@ -446,10 +446,13 @@ export function DashboardView() {
           </section>
 
           {/* ── Ingresos / Gastos / Invertido con tendencia ────────── */}
-          <section className="grid grid-cols-2 gap-3" aria-label="Resumen del mes">
-            <div className="card p-5">
-              <p className="text-xs text-neutral-500">Ingresos</p>
-              <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-emerald-400">
+          <section
+            className="grid grid-cols-2 gap-x-5 gap-y-6 px-1.5"
+            aria-label="Resumen del mes"
+          >
+            <div>
+              <p className="micro-label">Ingresos</p>
+              <p className="pt-2 font-display text-[26px] font-medium tabular-nums text-emerald-400">
                 {formatEUR(r.ingresos)}
               </p>
               <DeltaChip
@@ -458,9 +461,9 @@ export function DashboardView() {
                 etiqueta={esMesActual ? "vs mismo día mes ant." : "vs mes ant."}
               />
             </div>
-            <div className="card p-5">
-              <p className="text-xs text-neutral-500">Gastos</p>
-              <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-rose-400">
+            <div>
+              <p className="micro-label">Gastos</p>
+              <p className="pt-2 font-display text-[26px] font-medium tabular-nums text-rose-400">
                 {formatEUR(r.gastos)}
               </p>
               <DeltaChip
@@ -480,16 +483,16 @@ export function DashboardView() {
                 </p>
               )}
             </div>
-            <div className="col-span-2 flex items-center justify-between card p-4">
+            <div className="col-span-2 flex items-end justify-between border-t border-white/[0.06] pt-5">
               <div>
-                <p className="text-xs text-neutral-500">Invertido</p>
-                <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-oro">
+                <p className="micro-label">Invertido</p>
+                <p className="pt-2 font-display text-[26px] font-medium tabular-nums text-oro">
                   {formatEUR(r.invertido)}
                 </p>
               </div>
               {tasaInversion !== null && (
-                <p className="text-right text-xs text-neutral-500">
-                  <span className="block text-base font-medium tabular-nums text-neutral-300">
+                <p className="text-right text-[11px] text-neutral-500">
+                  <span className="block font-display text-base font-medium tabular-nums text-neutral-300">
                     {formatPct(tasaInversion)}
                   </span>
                   de tus ingresos
@@ -500,10 +503,7 @@ export function DashboardView() {
 
           {/* ── Ritmo de gasto (solo mes en curso) ─────────────────── */}
           {ritmo && r.gastos > 0 && (
-            <section
-              className="card p-5"
-              aria-label="Ritmo de gasto"
-            >
+            <section className="px-1.5" aria-label="Ritmo de gasto">
               <h2 className="micro-label flex items-center gap-1.5">
                 <Flame className="size-3.5" aria-hidden /> Ritmo de gasto
               </h2>
@@ -559,7 +559,7 @@ export function DashboardView() {
           )}
 
           {/* ── Ahorro por mes ─────────────────────────────────────── */}
-          <section className="card p-5" aria-label="Ahorro por mes">
+          <section className="px-1.5" aria-label="Ahorro por mes">
             <h2 className="micro-label">Ahorro por mes · últimos 6 meses</h2>
             {!hayEvolucion || !ahorroHistorico ? (
               <p className="py-8 text-center text-sm text-neutral-500">
@@ -573,9 +573,10 @@ export function DashboardView() {
                       dataKey="mes"
                       tickLine={false}
                       axisLine={false}
-                      tick={{ fill: "#898781", fontSize: 11 }}
+                      tick={{ fill: "#5b6069", fontSize: 10 }}
+                      dy={6}
                     />
-                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.18)" />
+                    <ReferenceLine y={0} stroke="rgba(255,255,255,0.10)" />
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
@@ -595,7 +596,7 @@ export function DashboardView() {
                     <Bar
                       dataKey="ahorro"
                       shape={<BarraAhorro />}
-                      maxBarSize={22}
+                      maxBarSize={13}
                     />
                   </BarChart>
                 </ChartContainer>
@@ -676,7 +677,7 @@ export function DashboardView() {
           </section>
 
           {/* ── Reparto de gastos ──────────────────────────────────── */}
-          <section className="card p-5">
+          <section className="px-1.5">
             <h2 className="micro-label">Reparto de gastos</h2>
             {segmentos.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-10 text-center">
@@ -708,9 +709,9 @@ export function DashboardView() {
                         data={segmentos}
                         dataKey="euros"
                         nameKey="nombre"
-                        innerRadius="62%"
-                        outerRadius="90%"
-                        paddingAngle={2}
+                        innerRadius="76%"
+                        outerRadius="93%"
+                        paddingAngle={3}
                         strokeWidth={0}
                       >
                         {segmentos.map((s) => (
@@ -751,7 +752,7 @@ export function DashboardView() {
           </section>
 
           {/* ── Presupuestos por categoría ─────────────────────────── */}
-          <section className="card p-5">
+          <section className="px-1.5">
             <h2 className="micro-label">Presupuestos</h2>
             {presupuestos.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-6 text-center">
@@ -812,7 +813,7 @@ export function DashboardView() {
 
           {/* ── Top gastos del mes ─────────────────────────────────── */}
           {topGastos.length > 0 && (
-            <section className="card p-5" aria-label="Top gastos">
+            <section className="px-1.5" aria-label="Top gastos">
               <h2 className="micro-label">
                 Mayores gastos del mes
               </h2>
