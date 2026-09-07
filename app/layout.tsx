@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { RegisterSW } from "@/components/register-sw";
 import "./globals.css";
@@ -14,11 +14,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Display: titulares e importes. Le da carácter a los números.
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+// Display: titulares e importes. Geométrica y limpia; al ser variable
+// tenemos todos los pesos, que es lo que pide el diseño (cifras grandes finas).
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -52,7 +52,7 @@ export default function RootLayout({
     // Modo oscuro por defecto (clase "dark" fija; los tokens viven en globals.css)
     <html
       lang="es"
-      className={`dark ${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased`}
+      className={`dark ${geistSans.variable} ${geistMono.variable} ${outfit.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         {children}
