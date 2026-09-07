@@ -99,7 +99,7 @@ export function AjustesCategorias() {
         </button>
       </div>
 
-      <ul className="card divide-y divide-white/[0.04] overflow-hidden">
+      <ul className="space-y-0.5">
         {TIPOS.map(({ valor, etiqueta }) => {
           const delTipo = categorias.filter((c) => c.tipo === valor)
           if (delTipo.length === 0) return null
@@ -151,7 +151,7 @@ export function AjustesCategorias() {
                     "h-10 rounded-full border text-sm transition-colors cursor-pointer",
                     nuevoTipo === t.valor
                       ? "border-white/25 bg-white/10 font-medium text-white"
-                      : "border-white/[0.07] bg-white/[0.02] text-neutral-400"
+                      : "control text-neutral-400"
                   )}
                 >
                   {t.etiqueta}
@@ -164,7 +164,7 @@ export function AjustesCategorias() {
               autoFocus
               placeholder="Nombre (p. ej. Mascotas)"
               aria-label="Nombre de la categoría"
-              className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
+              className="h-12 rounded-xl control px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
             />
             <button
               type="submit"
@@ -193,7 +193,7 @@ export function AjustesCategorias() {
                 value={nombreEdit}
                 onChange={(e) => setNombreEdit(e.target.value)}
                 aria-label="Nombre de la categoría"
-                className="h-12 min-w-0 flex-1 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none focus-visible:ring-2 focus-visible:ring-white/20"
+                className="h-12 min-w-0 flex-1 rounded-xl control px-4 text-base outline-none focus-visible:ring-2 focus-visible:ring-white/20"
               />
               <button
                 type="submit"
@@ -231,7 +231,7 @@ export function AjustesCategorias() {
                             "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
                             reasignarA === c.id
                               ? "border-white/25 bg-white/10 text-white"
-                              : "border-white/[0.07] bg-white/[0.02] text-neutral-400"
+                              : "control text-neutral-400"
                           )}
                         >
                           {c.nombre}

@@ -109,7 +109,7 @@ export function EditarMovimientoDrawer({
                   "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
                   categoriaId === cat.id
                     ? "border-white/25 bg-white/10 text-white"
-                    : "border-white/[0.07] bg-white/[0.02] text-neutral-400"
+                    : "control text-neutral-400"
                 )}
               >
                 {cat.nombre}
@@ -123,7 +123,7 @@ export function EditarMovimientoDrawer({
               onChange={(e) => setConcepto(e.target.value)}
               placeholder="Concepto (opcional)"
               aria-label="Concepto"
-              className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
+              className="h-12 rounded-xl control px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
             />
             <input
               type="date"
@@ -131,7 +131,7 @@ export function EditarMovimientoDrawer({
               max={hoyISO()}
               onChange={(e) => setFecha(e.target.value)}
               aria-label="Fecha"
-              className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-sm text-neutral-300 outline-none focus-visible:ring-2 focus-visible:ring-white/20 [color-scheme:dark]"
+              className="h-12 rounded-xl control px-3 text-sm text-neutral-300 outline-none focus-visible:ring-2 focus-visible:ring-white/20 [color-scheme:dark]"
             />
           </div>
 

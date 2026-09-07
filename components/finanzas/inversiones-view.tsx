@@ -290,7 +290,7 @@ function NuevaPosicionDrawer({
             autoFocus
             placeholder="Nombre (p. ej. True Value Fi)"
             aria-label="Nombre"
-            className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-oro/40"
+            className="h-12 rounded-xl control px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-oro/40"
           />
 
           <div className="flex gap-1.5">
@@ -303,7 +303,7 @@ function NuevaPosicionDrawer({
                   "h-9 flex-1 rounded-full border text-sm transition-colors cursor-pointer",
                   tipo === t.valor
                     ? "border-oro/40 bg-oro/10 font-medium text-oro"
-                    : "border-white/[0.07] bg-white/[0.02] text-neutral-400"
+                    : "control text-neutral-400"
                 )}
               >
                 {t.etiqueta}
@@ -320,7 +320,7 @@ function NuevaPosicionDrawer({
                 inputMode="decimal"
                 placeholder="3.629,54"
                 aria-label="Valor actual en euros"
-                className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-oro/40"
+                className="h-12 rounded-xl control px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-oro/40"
               />
             </label>
             <label className="flex flex-col gap-1.5">
@@ -331,7 +331,7 @@ function NuevaPosicionDrawer({
                 inputMode="text"
                 placeholder="429,48 / −71,83"
                 aria-label="Ganancia o pérdida en euros"
-                className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-oro/40"
+                className="h-12 rounded-xl control px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-oro/40"
               />
             </label>
           </div>
@@ -540,7 +540,7 @@ function DetallePosicionDrawer({
                   : "Cuánto aportas"
               }
               aria-label={modo === "valor" ? "Nuevo valor" : "Aportación"}
-              className="h-12 flex-1 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
+              className="h-12 flex-1 rounded-xl control px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
             />
             <button
               type="submit"

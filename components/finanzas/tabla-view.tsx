@@ -144,7 +144,7 @@ export function TablaView() {
 
       {/* Búsqueda por concepto o categoría dentro del mes */}
       <div className="px-4 pb-2">
-        <label className="flex h-10 items-center gap-2 rounded-full border border-white/[0.07] bg-white/[0.02] px-3.5">
+        <label className="flex h-10 items-center gap-2 rounded-full control px-3.5">
           <Search className="size-4 shrink-0 text-neutral-500" aria-hidden />
           <input
             value={busqueda}
@@ -168,17 +168,17 @@ export function TablaView() {
         {cargando ? (
           <div className="mx-2 h-64 animate-pulse rounded-2xl bg-neutral-900" />
         ) : delMes.length === 0 ? (
-          <div className="mx-2 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-800 px-6 py-16 text-center">
+          <div className="mx-2 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-white/[0.07] px-6 py-16 text-center">
             <Table2 className="size-8 text-neutral-600" aria-hidden />
             <p className="text-sm text-neutral-400">
               Sin movimientos en {etiquetaMes(mes)}.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-[1.25rem] border border-white/[0.07] bg-[#0f1115]">
+          <div className="overflow-x-auto rounded-[1.5rem] border border-white/[0.07] bg-white/[0.035] backdrop-blur-xl">
             <table className="w-full min-w-[560px] border-collapse text-sm">
               <thead>
-                <tr className="border-b border-neutral-800 bg-[#13151a] text-left text-xs text-neutral-400">
+                <tr className="border-b border-white/[0.07] text-left">
                   {CABECERAS.map(({ col, etiqueta, className }) => (
                     <th
                       key={col}
@@ -190,15 +190,15 @@ export function TablaView() {
                           : undefined
                       }
                       className={cn(
-                        "font-medium",
+                        "micro-label",
                         col === "importe" &&
-                          "sticky right-0 bg-[#13151a] shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]"
+                          "sticky right-0 bg-[#0d0f13] shadow-[inset_1px_0_0_0_rgba(255,255,255,0.07)]"
                       )}
                     >
                       <button
                         onClick={() => toggleOrden(col)}
                         className={cn(
-                          "flex w-full items-center gap-1 px-3 py-2.5 cursor-pointer",
+                          "flex w-full items-center gap-1 px-3.5 py-3 cursor-pointer",
                           className === "text-right" && "justify-end"
                         )}
                       >
@@ -220,23 +220,23 @@ export function TablaView() {
                   return (
                     <tr
                       key={m.id}
-                      className="border-b border-neutral-800/60 last:border-0"
+                      className="border-b border-white/[0.04] last:border-0"
                     >
-                      <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-neutral-300">
+                      <td className="whitespace-nowrap px-3.5 py-3 tabular-nums text-neutral-300">
                         {dd}/{mm}
                       </td>
-                      <td className={cn("px-3 py-2.5 text-xs font-medium", COLOR_TIPO_TEXTO[m.tipo])}>
+                      <td className={cn("px-3.5 py-3 text-xs font-medium", COLOR_TIPO_TEXTO[m.tipo])}>
                         {ETIQUETA_TIPO[m.tipo]}
                       </td>
-                      <td className="whitespace-nowrap px-3 py-2.5 text-neutral-300">
+                      <td className="whitespace-nowrap px-3.5 py-3 text-neutral-300">
                         {categoriasById.get(m.categoria_id)?.nombre ?? "—"}
                       </td>
-                      <td className="max-w-40 truncate px-3 py-2.5 text-neutral-400">
+                      <td className="max-w-40 truncate px-3.5 py-3 text-neutral-400">
                         {m.concepto || "—"}
                       </td>
                       <td
                         className={cn(
-                          "sticky right-0 whitespace-nowrap bg-[#0f1115] px-3 py-2.5 text-right font-medium tabular-nums shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]",
+                          "sticky right-0 whitespace-nowrap bg-[#0d0f13] px-3.5 py-3 text-right font-medium tabular-nums shadow-[inset_1px_0_0_0_rgba(255,255,255,0.07)]",
                           COLOR_TIPO_TEXTO[m.tipo]
                         )}
                       >
@@ -247,38 +247,38 @@ export function TablaView() {
                   )
                 })}
               </tbody>
-              <tfoot className="border-t border-neutral-700 bg-[#13151a] text-xs">
+              <tfoot className="border-t border-white/[0.09] bg-[#0d0f13] text-xs">
                 <tr>
-                  <td colSpan={4} className="px-3 py-2 text-right text-neutral-400">
+                  <td colSpan={4} className="px-3.5 py-2.5 text-right text-neutral-400">
                     Ingresos
                   </td>
-                  <td className="sticky right-0 bg-[#13151a] px-3 py-2 text-right font-medium tabular-nums text-emerald-400 shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]">
+                  <td className="sticky right-0 bg-[#0d0f13] px-3.5 py-2.5 text-right font-medium tabular-nums text-emerald-400 shadow-[inset_1px_0_0_0_rgba(255,255,255,0.07)]">
                     +{formatEUR(totales.ingresos)}
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan={4} className="px-3 py-2 text-right text-neutral-400">
+                  <td colSpan={4} className="px-3.5 py-2.5 text-right text-neutral-400">
                     Gastos
                   </td>
-                  <td className="sticky right-0 bg-[#13151a] px-3 py-2 text-right font-medium tabular-nums text-rose-400 shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]">
+                  <td className="sticky right-0 bg-[#0d0f13] px-3.5 py-2.5 text-right font-medium tabular-nums text-rose-400 shadow-[inset_1px_0_0_0_rgba(255,255,255,0.07)]">
                     −{formatEUR(totales.gastos)}
                   </td>
                 </tr>
                 <tr>
-                  <td colSpan={4} className="px-3 py-2 text-right text-neutral-400">
+                  <td colSpan={4} className="px-3.5 py-2.5 text-right text-neutral-400">
                     Inversión
                   </td>
-                  <td className="sticky right-0 bg-[#13151a] px-3 py-2 text-right font-medium tabular-nums text-oro shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]">
+                  <td className="sticky right-0 bg-[#0d0f13] px-3.5 py-2.5 text-right font-medium tabular-nums text-oro shadow-[inset_1px_0_0_0_rgba(255,255,255,0.07)]">
                     {formatEUR(totales.inversion)}
                   </td>
                 </tr>
-                <tr className="border-t border-neutral-700">
-                  <td colSpan={4} className="px-3 py-2.5 text-right font-medium text-neutral-200">
+                <tr className="border-t border-white/[0.09]">
+                  <td colSpan={4} className="px-3.5 py-3 text-right font-medium text-neutral-200">
                     Ahorro (ingresos − gastos)
                   </td>
                   <td
                     className={cn(
-                      "sticky right-0 bg-[#13151a] px-3 py-2.5 text-right font-semibold tabular-nums shadow-[inset_1px_0_0_0_theme(colors.neutral.800)]",
+                      "sticky right-0 bg-[#0d0f13] px-3.5 py-3 text-right font-semibold tabular-nums shadow-[inset_1px_0_0_0_rgba(255,255,255,0.07)]",
                       totales.ahorro >= 0 ? "text-emerald-400" : "text-rose-400"
                     )}
                   >

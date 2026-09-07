@@ -388,7 +388,7 @@ function PendienteDrawer({
               tipo === "tarea" ? "Qué recordar (p. ej. cancelar Netflix)" : "Concepto (p. ej. la cena)"
             }
             aria-label="Concepto"
-            className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-primary/40"
+            className="h-12 rounded-xl control px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-primary/40"
           />
 
           {esDeuda && (
@@ -398,7 +398,7 @@ function PendienteDrawer({
                 onChange={(e) => setPersona(e.target.value)}
                 placeholder={tipo === "cobro" ? "Quién te debe" : "A quién debes"}
                 aria-label="Persona"
-                className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="h-12 rounded-xl control px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-primary/40"
               />
               <input
                 value={importe}
@@ -406,13 +406,13 @@ function PendienteDrawer({
                 inputMode="decimal"
                 placeholder="Importe €"
                 aria-label="Importe"
-                className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-primary/40"
+                className="h-12 rounded-xl control px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-primary/40"
               />
             </div>
           )}
 
           {/* Fecha */}
-          <label className="flex items-center justify-between gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-2.5">
+          <label className="flex items-center justify-between gap-3 rounded-xl control px-4 py-2.5">
             <span className="text-sm text-neutral-400">Fecha (opcional)</span>
             <input
               type="date"

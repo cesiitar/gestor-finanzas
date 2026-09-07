@@ -103,7 +103,7 @@ export function AjustesGastosFijos() {
         </div>
       ) : (
         <>
-          <ul className="card divide-y divide-white/[0.04] overflow-hidden">
+          <ul className="space-y-0.5">
             {gastosFijos.map((fijo) => (
               <li key={fijo.id}>
                 <button
@@ -145,7 +145,7 @@ export function AjustesGastosFijos() {
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Nombre (p. ej. Alquiler)"
               aria-label="Nombre del gasto fijo"
-              className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
+              className="h-12 rounded-xl control px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
             />
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <input
@@ -154,9 +154,9 @@ export function AjustesGastosFijos() {
                 inputMode="decimal"
                 placeholder="Importe (0,00)"
                 aria-label="Importe mensual en euros"
-                className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
+                className="h-12 rounded-xl control px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-white/20"
               />
-              <label className="flex h-12 items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-sm text-neutral-400">
+              <label className="flex h-12 items-center gap-2 rounded-xl control px-3 text-sm text-neutral-400">
                 Día
                 <input
                   value={dia}
@@ -180,7 +180,7 @@ export function AjustesGastosFijos() {
                     "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
                     categoriaId === cat.id
                       ? "border-white/25 bg-white/10 text-white"
-                      : "border-white/[0.07] bg-white/[0.02] text-neutral-400"
+                      : "control text-neutral-400"
                   )}
                 >
                   {cat.nombre}

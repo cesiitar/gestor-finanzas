@@ -55,7 +55,7 @@ export function AjustesPresupuestos() {
   return (
     <section>
       <h2 className="micro-label px-1.5 pb-2">Presupuestos mensuales</h2>
-      <ul className="card divide-y divide-white/[0.04] overflow-hidden">
+      <ul className="space-y-0.5">
         {gastos.map((cat) => {
           const Icono = getIconoCategoria(cat.nombre, cat.tipo)
           return (

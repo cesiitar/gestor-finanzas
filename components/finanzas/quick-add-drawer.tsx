@@ -110,7 +110,7 @@ export function QuickAddDrawer({
           <div
             role="radiogroup"
             aria-label="Tipo de movimiento"
-            className="relative mx-auto grid w-full max-w-sm grid-cols-3 rounded-full bg-white/[0.05] p-1"
+            className="control relative mx-auto grid w-full max-w-sm grid-cols-3 rounded-full p-1"
           >
             {TIPOS.map((t) => (
               <button
@@ -154,12 +154,12 @@ export function QuickAddDrawer({
               placeholder="0,00"
               aria-label="Importe en euros"
               className={cn(
-                "w-40 bg-transparent text-right font-display text-5xl font-semibold tabular-nums outline-none",
+                "w-44 bg-transparent text-right font-display text-[56px] font-medium tracking-[-0.03em] tabular-nums outline-none",
                 "placeholder:text-neutral-700",
                 COLOR_TIPO[tipo].texto
               )}
             />
-            <span className={cn("text-3xl font-medium", COLOR_TIPO[tipo].texto)}>€</span>
+            <span className={cn("font-display text-3xl font-normal", COLOR_TIPO[tipo].texto)}>€</span>
           </div>
 
           {/* Categorías del tipo elegido */}
@@ -175,10 +175,10 @@ export function QuickAddDrawer({
                   aria-checked={activa}
                   onClick={() => setCategoriaId(cat.id)}
                   className={cn(
-                    "flex h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm transition-colors cursor-pointer",
+                    "flex h-10 items-center gap-1.5 rounded-full px-3.5 text-sm transition-colors cursor-pointer",
                     activa
-                      ? "border-white/25 bg-white/10 text-white"
-                      : "border-white/[0.07] bg-white/[0.02] text-neutral-400"
+                      ? "control control-activo"
+                      : "control"
                   )}
                 >
                   <Icono className="size-4" aria-hidden />
@@ -201,10 +201,10 @@ export function QuickAddDrawer({
                 aria-checked={posicionId === null}
                 onClick={() => setPosicionId(null)}
                 className={cn(
-                  "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
+                  "h-9 rounded-full px-3 text-xs transition-colors cursor-pointer",
                   posicionId === null
                     ? "border-oro/50 bg-oro/15 text-oro"
-                    : "border-white/[0.07] bg-white/[0.02] text-neutral-500"
+                    : "control"
                 )}
               >
                 Sin posición
@@ -217,10 +217,10 @@ export function QuickAddDrawer({
                   aria-checked={posicionId === pos.id}
                   onClick={() => setPosicionId(pos.id)}
                   className={cn(
-                    "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
+                    "h-9 rounded-full px-3 text-xs transition-colors cursor-pointer",
                     posicionId === pos.id
                       ? "border-oro/50 bg-oro/15 text-oro"
-                      : "border-white/[0.07] bg-white/[0.02] text-neutral-500"
+                      : "control"
                   )}
                 >
                   {pos.nombre}
@@ -236,7 +236,7 @@ export function QuickAddDrawer({
               onChange={(e) => setConcepto(e.target.value)}
               placeholder="Concepto (opcional)"
               aria-label="Concepto o sitio"
-              className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-neutral-600"
+              className="h-12 rounded-xl control px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-neutral-600"
             />
             <input
               type="date"
@@ -244,7 +244,7 @@ export function QuickAddDrawer({
               max={hoyISO()}
               onChange={(e) => setFecha(e.target.value)}
               aria-label="Fecha del movimiento"
-              className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 text-sm text-neutral-300 outline-none focus-visible:ring-2 focus-visible:ring-neutral-600 [color-scheme:dark]"
+              className="h-12 rounded-xl control px-3 text-sm text-neutral-300 outline-none focus-visible:ring-2 focus-visible:ring-neutral-600 [color-scheme:dark]"
             />
           </div>
 
