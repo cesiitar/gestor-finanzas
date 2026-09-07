@@ -106,14 +106,14 @@ export function InversionesView() {
 
   return (
     <>
-      <header className="px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3">
+      <header className="px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-5">
         <p className="micro-label">Gestor de finanzas</p>
-        <h1 className="pt-1 font-display text-[26px] font-semibold leading-none tracking-tight">
+        <h1 className="titulo-pantalla pt-2">
           Inversiones
         </h1>
       </header>
 
-      <main className="space-y-6 px-4">
+      <main className="space-y-8 px-4">
         {/* KPIs de cartera */}
         <section className="relative overflow-hidden rounded-[1.75rem] border border-oro/25 bg-gradient-to-b from-oro/[0.09] to-white/[0.02] backdrop-blur-2xl p-5 shadow-[0_0_90px_-20px_rgba(232,194,104,0.35)]">
           <div

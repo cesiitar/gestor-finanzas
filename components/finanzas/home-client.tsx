@@ -72,14 +72,14 @@ export function HomeClient() {
 
   return (
     <>
-      <header className="flex items-end justify-between px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3">
+      <header className="flex items-end justify-between px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-5">
         <div>
           <p className="micro-label">Gestor de finanzas</p>
-          <h1 className="pt-1 font-display text-[26px] font-semibold leading-none tracking-tight">
+          <h1 className="titulo-pantalla pt-2">
             Movimientos
           </h1>
           {!cargando && (
-            <p className="pt-2 text-sm text-neutral-400">
+            <p className="pt-3.5 text-[13px] text-neutral-500">
               Gastado{" "}
               <span className="font-display font-semibold tabular-nums text-rose-400">
                 {formatEUR(resumen.gastado)}
@@ -106,14 +106,14 @@ export function HomeClient() {
           <Link
             href="/pendientes"
             aria-label="Pendientes"
-            className="flex size-11 items-center justify-center rounded-full border border-white/[0.07] bg-white/[0.03] text-neutral-400 transition-colors hover:text-neutral-100"
+            className="control flex size-11 items-center justify-center rounded-full"
           >
             <CalendarClock className="size-[18px]" aria-hidden />
           </Link>
           <Link
             href="/ajustes"
             aria-label="Ajustes"
-            className="flex size-11 items-center justify-center rounded-full border border-white/[0.07] bg-white/[0.03] text-neutral-400 transition-colors hover:text-neutral-100"
+            className="control flex size-11 items-center justify-center rounded-full"
           >
             <Settings className="size-[18px]" aria-hidden />
           </Link>
@@ -126,7 +126,7 @@ export function HomeClient() {
       <div
         role="radiogroup"
         aria-label="Filtrar por tipo"
-        className="flex gap-1.5 overflow-x-auto px-4 py-2 [scrollbar-width:none]"
+        className="flex gap-2 overflow-x-auto px-5 pb-4 [scrollbar-width:none]"
       >
         {FILTROS.map((f) => (
           <button
@@ -136,10 +136,8 @@ export function HomeClient() {
             aria-checked={filtro === f.valor}
             onClick={() => setFiltro(f.valor)}
             className={cn(
-              "h-9 shrink-0 rounded-full border px-3.5 text-sm transition-colors cursor-pointer",
-              filtro === f.valor
-                ? "border-primary/40 bg-primary/10 font-medium text-primary"
-                : "border-white/[0.07] bg-white/[0.02] text-neutral-400 hover:text-neutral-200"
+              "control h-10 shrink-0 rounded-full px-4 text-sm cursor-pointer",
+              filtro === f.valor && "control-activo font-medium"
             )}
           >
             {f.etiqueta}
@@ -147,7 +145,7 @@ export function HomeClient() {
         ))}
       </div>
 
-      <main className="px-4 pt-2">
+      <main className="px-4">
         <MovimientosList
           movimientos={visibles}
           categoriasById={categoriasById}

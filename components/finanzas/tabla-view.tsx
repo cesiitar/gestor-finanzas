@@ -123,10 +123,10 @@ export function TablaView() {
 
   return (
     <>
-      <header className="flex items-end justify-between px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3">
+      <header className="flex items-end justify-between px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-5">
         <div>
           <p className="micro-label">Gestor de finanzas</p>
-          <h1 className="pt-1 font-display text-[26px] font-semibold leading-none tracking-tight">
+          <h1 className="titulo-pantalla pt-2">
             Tabla
           </h1>
         </div>

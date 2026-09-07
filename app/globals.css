@@ -159,6 +159,47 @@
       0 18px 44px -24px rgba(0, 0, 0, 0.95);
   }
 
+  /* Control de cristal: la misma piel para chips, flechas y botones de
+     icono. Antes cada uno tenía su borde plano y rompía el conjunto. */
+  .control {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.018)
+    );
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    color: #8b919d;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .control:hover {
+    color: #e6e8ec;
+  }
+  /* Estado activo: el acento se enciende, no se rellena de color plano */
+  .control-activo {
+    border-color: rgba(163, 230, 53, 0.35);
+    background: linear-gradient(
+      180deg,
+      rgba(163, 230, 53, 0.16),
+      rgba(163, 230, 53, 0.05)
+    );
+    color: #a3e635;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 0 22px -8px rgba(163, 230, 53, 0.75);
+  }
+
+  /* Titular de pantalla: grande, ligero y muy junto (aire minimalista) */
+  .titulo-pantalla {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
   /* Etiqueta micro editorial: mono, mayúsculas, espaciada */
   .micro-label {
     font-family: var(--font-geist-mono), monospace;

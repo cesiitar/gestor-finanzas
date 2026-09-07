@@ -83,7 +83,7 @@ export function PendientesView() {
 
   return (
     <>
-      <header className="flex items-center justify-between px-4 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3">
+      <header className="flex items-center justify-between px-4 pt-[max(2rem,env(safe-area-inset-top))] pb-5">
         <div className="flex items-center gap-1">
           <Link
             href="/"
@@ -94,7 +94,7 @@ export function PendientesView() {
           </Link>
           <div>
             <p className="micro-label">Gestor de finanzas</p>
-            <h1 className="pt-0.5 font-display text-[26px] font-semibold leading-none tracking-tight">
+            <h1 className="titulo-pantalla pt-1">
               Pendientes
             </h1>
           </div>
@@ -108,17 +108,17 @@ export function PendientesView() {
         </button>
       </header>
 
-      <main className="space-y-6 px-4">
+      <main className="space-y-8 px-4">
         {/* Totales de deudas */}
         {(teDeben > 0 || debes > 0) && (
-          <section className="grid grid-cols-2 gap-2.5">
-            <div className="card p-4">
+          <section className="grid grid-cols-2 gap-3">
+            <div className="card p-5">
               <p className="text-xs text-neutral-500">Te deben</p>
               <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-emerald-400">
                 {formatEUR(teDeben)}
               </p>
             </div>
-            <div className="card p-4">
+            <div className="card p-5">
               <p className="text-xs text-neutral-500">Debes</p>
               <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-rose-400">
                 {formatEUR(debes)}

@@ -297,9 +297,9 @@ export function DashboardView() {
 
   return (
     <>
-      <header className="px-5 pt-[max(1.5rem,env(safe-area-inset-top))] pb-3">
+      <header className="px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-5">
         <p className="micro-label">Gestor de finanzas</p>
-        <h1 className="pt-1 font-display text-[26px] font-semibold leading-none tracking-tight">
+        <h1 className="titulo-pantalla pt-2">
           Panel
         </h1>
       </header>
@@ -313,7 +313,7 @@ export function DashboardView() {
           ))}
         </main>
       ) : (
-        <main className="space-y-6 px-4">
+        <main className="space-y-8 px-4">
           {/* ── KPI héroe: ahorro y tasa de ahorro ─────────────────── */}
           <section
             aria-label="Ahorro del mes"
@@ -446,8 +446,8 @@ export function DashboardView() {
           </section>
 
           {/* ── Ingresos / Gastos / Invertido con tendencia ────────── */}
-          <section className="grid grid-cols-2 gap-2.5" aria-label="Resumen del mes">
-            <div className="card p-4">
+          <section className="grid grid-cols-2 gap-3" aria-label="Resumen del mes">
+            <div className="card p-5">
               <p className="text-xs text-neutral-500">Ingresos</p>
               <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-emerald-400">
                 {formatEUR(r.ingresos)}
@@ -458,7 +458,7 @@ export function DashboardView() {
                 etiqueta={esMesActual ? "vs mismo día mes ant." : "vs mes ant."}
               />
             </div>
-            <div className="card p-4">
+            <div className="card p-5">
               <p className="text-xs text-neutral-500">Gastos</p>
               <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-rose-400">
                 {formatEUR(r.gastos)}
@@ -501,7 +501,7 @@ export function DashboardView() {
           {/* ── Ritmo de gasto (solo mes en curso) ─────────────────── */}
           {ritmo && r.gastos > 0 && (
             <section
-              className="card p-4"
+              className="card p-5"
               aria-label="Ritmo de gasto"
             >
               <h2 className="micro-label flex items-center gap-1.5">
@@ -559,7 +559,7 @@ export function DashboardView() {
           )}
 
           {/* ── Ahorro por mes ─────────────────────────────────────── */}
-          <section className="card p-4" aria-label="Ahorro por mes">
+          <section className="card p-5" aria-label="Ahorro por mes">
             <h2 className="micro-label">Ahorro por mes · últimos 6 meses</h2>
             {!hayEvolucion || !ahorroHistorico ? (
               <p className="py-8 text-center text-sm text-neutral-500">
@@ -676,7 +676,7 @@ export function DashboardView() {
           </section>
 
           {/* ── Reparto de gastos ──────────────────────────────────── */}
-          <section className="card p-4">
+          <section className="card p-5">
             <h2 className="micro-label">Reparto de gastos</h2>
             {segmentos.length === 0 ? (
               <div className="flex flex-col items-center gap-2 py-10 text-center">
@@ -751,7 +751,7 @@ export function DashboardView() {
           </section>
 
           {/* ── Presupuestos por categoría ─────────────────────────── */}
-          <section className="card p-4">
+          <section className="card p-5">
             <h2 className="micro-label">Presupuestos</h2>
             {presupuestos.length === 0 ? (
               <div className="flex flex-col items-center gap-3 py-6 text-center">
@@ -812,7 +812,7 @@ export function DashboardView() {
 
           {/* ── Top gastos del mes ─────────────────────────────────── */}
           {topGastos.length > 0 && (
-            <section className="card p-4" aria-label="Top gastos">
+            <section className="card p-5" aria-label="Top gastos">
               <h2 className="micro-label">
                 Mayores gastos del mes
               </h2>

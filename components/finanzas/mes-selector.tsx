@@ -15,24 +15,24 @@ export function MesSelector({
   const mesActual = hoyISO().slice(0, 7)
 
   return (
-    <div className="flex items-center justify-center gap-2 px-4 py-2">
+    <div className="flex items-center justify-center gap-3 px-5 pb-2">
       <button
         onClick={() => onChange(sumarMeses(mes, -1))}
         aria-label="Mes anterior"
-        className="flex size-11 items-center justify-center rounded-full text-neutral-400 transition-colors hover:text-white cursor-pointer"
+        className="control flex size-10 shrink-0 items-center justify-center rounded-full cursor-pointer"
       >
-        <ChevronLeft className="size-5" aria-hidden />
+        <ChevronLeft className="size-[18px]" aria-hidden />
       </button>
-      <p className="w-40 text-center font-display text-base font-medium capitalize">
+      <p className="min-w-[9.5rem] text-center font-display text-[15px] font-medium tracking-tight text-neutral-200">
         {etiquetaMes(mes)}
       </p>
       <button
         onClick={() => onChange(sumarMeses(mes, 1))}
         disabled={mes >= mesActual}
         aria-label="Mes siguiente"
-        className="flex size-11 items-center justify-center rounded-full text-neutral-400 transition-colors hover:text-white disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+        className="control flex size-10 shrink-0 items-center justify-center rounded-full cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
       >
-        <ChevronRight className="size-5" aria-hidden />
+        <ChevronRight className="size-[18px]" aria-hidden />
       </button>
     </div>
   )
