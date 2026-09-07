@@ -84,7 +84,7 @@ export function AjustesPresupuestos() {
         onOpenChange={(open) => !open && setEditando(null)}
         repositionInputs={false}
       >
-        <DrawerContent className="border-white/[0.08] bg-[#101216]">
+        <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
           <DrawerHeader>
             <DrawerTitle>Presupuesto mensual de {editando?.nombre}</DrawerTitle>
           </DrawerHeader>

@@ -44,7 +44,7 @@ export function EditarMovimientoDrawer({
   if (!movimiento) {
     return (
       <Drawer open={false} onOpenChange={onOpenChange}>
-        <DrawerContent className="border-white/[0.08] bg-[#101216]" />
+        <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl" />
       </Drawer>
     )
   }
@@ -73,7 +73,7 @@ export function EditarMovimientoDrawer({
 
   return (
     <Drawer open onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="border-white/[0.08] bg-[#101216]">
+      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
         <DrawerHeader>
           <DrawerTitle>Editar movimiento</DrawerTitle>
         </DrawerHeader>

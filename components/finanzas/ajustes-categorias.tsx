@@ -134,7 +134,7 @@ export function AjustesCategorias() {
 
       {/* Nueva categoría */}
       <Drawer open={nuevaAbierta} onOpenChange={setNuevaAbierta} repositionInputs={false}>
-        <DrawerContent className="border-white/[0.08] bg-[#101216]">
+        <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
           <DrawerHeader>
             <DrawerTitle>Nueva categoría</DrawerTitle>
           </DrawerHeader>
@@ -183,7 +183,7 @@ export function AjustesCategorias() {
         onOpenChange={(open) => !open && setEditando(null)}
         repositionInputs={false}
       >
-        <DrawerContent className="border-white/[0.08] bg-[#101216]">
+        <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
           <DrawerHeader>
             <DrawerTitle>Editar categoría</DrawerTitle>
           </DrawerHeader>

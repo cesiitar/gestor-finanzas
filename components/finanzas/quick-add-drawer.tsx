@@ -28,7 +28,7 @@ const TIPOS: { valor: TipoMovimiento; etiqueta: string; accion: string }[] = [
 const BOTON_TIPO: Record<TipoMovimiento, string> = {
   gasto: "bg-rose-500 active:bg-rose-600",
   ingreso: "bg-emerald-500 active:bg-emerald-600",
-  inversion: "bg-sky-500 active:bg-sky-600",
+  inversion: "bg-oro text-[#07080b] active:bg-oro/80",
 }
 
 interface Props {
@@ -102,7 +102,7 @@ export function QuickAddDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="border-white/[0.08] bg-[#101216]">
+      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
         <DrawerHeader className="pb-2">
           <DrawerTitle className="sr-only">Añadir movimiento</DrawerTitle>
 
@@ -132,7 +132,7 @@ export function QuickAddDrawer({
                       "absolute inset-0 -z-10 rounded-full",
                       t.valor === "gasto" && "bg-rose-500/25 ring-1 ring-rose-500/50",
                       t.valor === "ingreso" && "bg-emerald-500/25 ring-1 ring-emerald-500/50",
-                      t.valor === "inversion" && "bg-sky-500/25 ring-1 ring-sky-500/50"
+                      t.valor === "inversion" && "bg-oro/25 ring-1 ring-oro/50"
                     )}
                   />
                 )}
@@ -203,7 +203,7 @@ export function QuickAddDrawer({
                 className={cn(
                   "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
                   posicionId === null
-                    ? "border-sky-500/50 bg-sky-500/15 text-sky-300"
+                    ? "border-oro/50 bg-oro/15 text-oro"
                     : "border-white/[0.07] bg-white/[0.02] text-neutral-500"
                 )}
               >
@@ -219,7 +219,7 @@ export function QuickAddDrawer({
                   className={cn(
                     "h-9 rounded-full border px-3 text-xs transition-colors cursor-pointer",
                     posicionId === pos.id
-                      ? "border-sky-500/50 bg-sky-500/15 text-sky-300"
+                      ? "border-oro/50 bg-oro/15 text-oro"
                       : "border-white/[0.07] bg-white/[0.02] text-neutral-500"
                   )}
                 >

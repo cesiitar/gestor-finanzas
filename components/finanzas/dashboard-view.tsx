@@ -320,8 +320,8 @@ export function DashboardView() {
             className={cn(
               "relative overflow-hidden rounded-[1.75rem] border p-5",
               r.ahorro >= 0
-                ? "border-primary/25 bg-gradient-to-b from-primary/[0.10] to-[#12150c] shadow-[0_0_90px_-20px_rgba(163,230,53,0.4)]"
-                : "border-rose-500/25 bg-gradient-to-b from-rose-500/[0.08] to-[#14161b] shadow-[0_0_90px_-20px_rgba(244,63,94,0.3)]"
+                ? "luz-borde border-primary/25 bg-gradient-to-b from-primary/[0.12] to-white/[0.02] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_90px_-20px_rgba(163,230,53,0.45)]"
+                : "border-rose-500/25 bg-gradient-to-b from-rose-500/[0.10] to-white/[0.02] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_0_90px_-20px_rgba(244,63,94,0.35)]"
             )}
           >
             {/* Retícula de fondo, desvaneciéndose hacia abajo a la derecha */}
@@ -425,7 +425,7 @@ export function DashboardView() {
               {r.invertido > 0 && (
                 <p className="pt-3 text-xs text-neutral-400">
                   Tras invertir{" "}
-                  <span className="tabular-nums text-sky-400">
+                  <span className="tabular-nums text-oro">
                     {formatEUR(r.invertido)}
                   </span>
                   , te quedan{" "}
@@ -483,7 +483,7 @@ export function DashboardView() {
             <div className="col-span-2 flex items-center justify-between card p-4">
               <div>
                 <p className="text-xs text-neutral-500">Invertido</p>
-                <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-sky-400">
+                <p className="pt-1 font-display text-2xl font-semibold tabular-nums text-oro">
                   {formatEUR(r.invertido)}
                 </p>
               </div>

@@ -135,7 +135,7 @@ export function AjustesGastosFijos() {
       )}
 
       <Drawer open={abierto} onOpenChange={setAbierto} repositionInputs={false}>
-        <DrawerContent className="border-white/[0.08] bg-[#101216]">
+        <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
           <DrawerHeader>
             <DrawerTitle>{editando ? `Editar ${editando.nombre}` : "Nuevo gasto fijo"}</DrawerTitle>
           </DrawerHeader>

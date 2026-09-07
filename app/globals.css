@@ -37,6 +37,7 @@
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary: var(--primary);
+  --color-oro: var(--oro);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -74,6 +75,8 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+  /* Acento dorado del rediseño (futurista minimalista) */
+  --oro: #e8c268;
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -87,14 +90,14 @@
 
 .dark {
   /* Identidad: negro azulado profundo + acento lima */
-  --background: #0b0c0f;
+  --background: #07080b;
   --foreground: oklch(0.985 0 0);
-  --card: #14161b;
+  --card: rgba(255, 255, 255, 0.04);
   --card-foreground: oklch(0.985 0 0);
-  --popover: #14161b;
+  --popover: #0e1014;
   --popover-foreground: oklch(0.985 0 0);
   --primary: #a3e635;
-  --primary-foreground: #0b0c0f;
+  --primary-foreground: #07080b;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -137,11 +140,23 @@
    Identidad visual de la app (fintech editorial)
    ============================================================ */
 @layer components {
-  /* Tarjeta estándar: superficie tintada + borde capilar */
+  /* Tarjeta de cristal: superficie translúcida, brillo superior y profundidad.
+     Es la pieza base del rediseño; la usan las 19 tarjetas de la app. */
   .card {
-    border-radius: 1.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    background: #14161b;
+    position: relative;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0.022) 45%,
+      rgba(255, 255, 255, 0.014) 100%
+    );
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+      0 18px 44px -24px rgba(0, 0, 0, 0.95);
   }
 
   /* Etiqueta micro editorial: mono, mayúsculas, espaciada */
@@ -149,9 +164,9 @@
     font-family: var(--font-geist-mono), monospace;
     font-size: 0.625rem;
     font-weight: 500;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: #6f7480;
+    color: #767d8b;
   }
 }
 
@@ -162,18 +177,56 @@ body::before {
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Resplandor radial tras la cabecera de cada pantalla */
+/* Ambiente: manchas de color muy suaves detrás de todo. Son las que
+   hacen que el cristal "refracte" algo y no se vea plano. */
 .page-glow {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 320px;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 55% at 20% -10%, var(--glow-color, rgba(163, 230, 53, 0.09)), transparent 70%);
+    radial-gradient(ellipse 75% 45% at 12% -6%, rgba(163, 230, 53, 0.11), transparent 62%),
+    radial-gradient(ellipse 55% 35% at 96% 6%, rgba(232, 194, 104, 0.08), transparent 62%),
+    radial-gradient(ellipse 85% 40% at 55% 104%, rgba(163, 230, 53, 0.05), transparent 66%);
+}
+
+/* Línea de luz en el borde inferior: la firma visual del rediseño.
+   El color se controla con --luz (lima por defecto, oro con .luz-oro). */
+.luz-borde {
+  position: relative;
+}
+.luz-borde::after {
+  content: "";
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  bottom: -1px;
+  height: 1px;
+  border-radius: 999px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--luz, #a3e635) 50%, transparent);
+  box-shadow: 0 0 16px 1px var(--luz, #a3e635);
+  opacity: 0.7;
+}
+.luz-oro {
+  --luz: #e8c268;
+}
+
+/* Botón píldora con brillo, como los del kit de referencia */
+.btn-luz {
+  position: relative;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #b6ef4c 0%, #92d128 100%);
+  color: #07080b;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+    0 0 28px -6px rgba(163, 230, 53, 0.6),
+    0 10px 24px -14px rgba(0, 0, 0, 0.9);
 }
 
 /* Keyframes del fondo aurora (components/ui/aurora-background.tsx) */

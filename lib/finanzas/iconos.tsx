@@ -43,9 +43,9 @@ export function getIconoCategoria(nombre: string, tipo: TipoMovimiento): LucideI
   return ICONOS_POR_NOMBRE[nombre.toLowerCase()] ?? ICONO_POR_TIPO[tipo] ?? CircleDollarSign
 }
 
-/** Color de acento por tipo de movimiento (verde ingreso, rojo gasto, azul inversión) */
+/** Color de acento por tipo de movimiento (verde ingreso, rojo gasto, dorado inversión) */
 export const COLOR_TIPO: Record<TipoMovimiento, { texto: string; fondo: string }> = {
   ingreso: { texto: "text-emerald-400", fondo: "bg-emerald-400/10" },
   gasto: { texto: "text-rose-400", fondo: "bg-rose-400/10" },
-  inversion: { texto: "text-sky-400", fondo: "bg-sky-400/10" },
+  inversion: { texto: "text-oro", fondo: "bg-oro/10" },
 }

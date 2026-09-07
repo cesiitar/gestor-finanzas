@@ -33,7 +33,7 @@ const TIPOS: { valor: TipoPendiente; etiqueta: string; Icono: typeof Bell }[] = 
 const ESTILO_TIPO: Record<TipoPendiente, { texto: string; fondo: string }> = {
   cobro: { texto: "text-emerald-400", fondo: "bg-emerald-500/12" },
   pago: { texto: "text-rose-400", fondo: "bg-rose-500/12" },
-  tarea: { texto: "text-sky-400", fondo: "bg-sky-500/12" },
+  tarea: { texto: "text-oro", fondo: "bg-oro/12" },
 }
 
 const OPCIONES_AVISO = [
@@ -352,7 +352,7 @@ function PendienteDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="border-white/[0.08] bg-[#101216]">
+      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
         <DrawerHeader>
           <DrawerTitle>{editando ? "Editar" : "Nuevo pendiente"}</DrawerTitle>
         </DrawerHeader>

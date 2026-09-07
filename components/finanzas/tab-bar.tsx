@@ -23,7 +23,7 @@ export function TabBar({ onAdd }: { onAdd: () => void }) {
       aria-label="Navegación principal"
       className="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 mx-auto max-w-sm"
     >
-      <div className="grid grid-cols-5 items-center rounded-full border border-white/[0.08] bg-[#111318]/85 px-2 py-1.5 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+      <div className="luz-borde grid grid-cols-5 items-center rounded-full border border-white/[0.09] bg-white/[0.045] px-2 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_18px_44px_-16px_rgba(0,0,0,0.95)] backdrop-blur-2xl">
         {TABS.map((tab, i) => {
           if (tab === null) {
             return (
@@ -32,7 +32,7 @@ export function TabBar({ onAdd }: { onAdd: () => void }) {
                   whileTap={{ scale: 0.88 }}
                   onClick={onAdd}
                   aria-label="Añadir movimiento"
-                  className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_0_24px_-4px_rgba(163,230,53,0.55)] cursor-pointer"
+                  className="btn-luz flex size-12 items-center justify-center cursor-pointer"
                 >
                   <Plus className="size-6" strokeWidth={2.5} aria-hidden />
                 </motion.button>

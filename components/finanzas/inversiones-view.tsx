@@ -115,7 +115,7 @@ export function InversionesView() {
 
       <main className="space-y-6 px-4">
         {/* KPIs de cartera */}
-        <section className="relative overflow-hidden rounded-[1.75rem] border border-sky-500/25 bg-gradient-to-b from-sky-500/[0.09] to-[#0d1319] p-5 shadow-[0_0_90px_-20px_rgba(56,189,248,0.35)]">
+        <section className="relative overflow-hidden rounded-[1.75rem] border border-oro/25 bg-gradient-to-b from-oro/[0.09] to-white/[0.02] backdrop-blur-2xl p-5 shadow-[0_0_90px_-20px_rgba(232,194,104,0.35)]">
           <div
             aria-hidden
             className="absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_75%)]"
@@ -176,7 +176,7 @@ export function InversionesView() {
                   <li key={pos.id}>
                     <button
                       onClick={() => setDetalle(pos)}
-                      className="card flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[#181b21] cursor-pointer"
+                      className="card flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/[0.06] cursor-pointer"
                     >
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[15px] font-medium text-neutral-100">
@@ -280,7 +280,7 @@ function NuevaPosicionDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="border-white/[0.08] bg-[#101216]">
+      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
         <DrawerHeader>
           <DrawerTitle>Nuevo fondo o posición</DrawerTitle>
         </DrawerHeader>
@@ -294,7 +294,7 @@ function NuevaPosicionDrawer({
             autoFocus
             placeholder="Nombre (p. ej. True Value Fi)"
             aria-label="Nombre"
-            className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-sky-500/40"
+            className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-oro/40"
           />
 
           <div className="flex gap-1.5">
@@ -306,7 +306,7 @@ function NuevaPosicionDrawer({
                 className={cn(
                   "h-9 flex-1 rounded-full border text-sm transition-colors cursor-pointer",
                   tipo === t.valor
-                    ? "border-sky-500/40 bg-sky-500/10 font-medium text-sky-400"
+                    ? "border-oro/40 bg-oro/10 font-medium text-oro"
                     : "border-white/[0.07] bg-white/[0.02] text-neutral-400"
                 )}
               >
@@ -324,7 +324,7 @@ function NuevaPosicionDrawer({
                 inputMode="decimal"
                 placeholder="3.629,54"
                 aria-label="Valor actual en euros"
-                className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-sky-500/40"
+                className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-oro/40"
               />
             </label>
             <label className="flex flex-col gap-1.5">
@@ -335,7 +335,7 @@ function NuevaPosicionDrawer({
                 inputMode="text"
                 placeholder="429,48 / −71,83"
                 aria-label="Ganancia o pérdida en euros"
-                className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-sky-500/40"
+                className="h-12 rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 text-base tabular-nums outline-none placeholder:text-neutral-600 focus-visible:ring-2 focus-visible:ring-oro/40"
               />
             </label>
           </div>
@@ -361,7 +361,7 @@ function NuevaPosicionDrawer({
           <button
             type="submit"
             disabled={!valido}
-            className="h-12 rounded-2xl bg-sky-500 text-base font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-40 cursor-pointer"
+            className="h-12 rounded-2xl bg-oro text-base font-semibold text-[#07080b] transition-all active:scale-[0.98] disabled:opacity-40 cursor-pointer"
           >
             Añadir a la cartera
           </button>
@@ -374,7 +374,7 @@ function NuevaPosicionDrawer({
 // ---------------------------------------------------------------------------
 // Detalle de una posición: gráfica + actualizar valor + aportar + borrar
 // ---------------------------------------------------------------------------
-const CONFIG_VAL = { valor: { label: "Valor", color: "#38bdf8" } } satisfies ChartConfig
+const CONFIG_VAL = { valor: { label: "Valor", color: "#e8c268" } } satisfies ChartConfig
 
 function DetallePosicionDrawer({
   posicion,
@@ -439,7 +439,7 @@ function DetallePosicionDrawer({
 
   return (
     <Drawer open={posicion !== null} onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="border-white/[0.08] bg-[#101216]">
+      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
         <DrawerHeader>
           <DrawerTitle className="truncate">{posicion.nombre}</DrawerTitle>
         </DrawerHeader>
@@ -490,7 +490,7 @@ function DetallePosicionDrawer({
                 <Line
                   type="monotone"
                   dataKey="valor"
-                  stroke="#38bdf8"
+                  stroke="#e8c268"
                   strokeWidth={2}
                   dot={false}
                 />
@@ -511,7 +511,7 @@ function DetallePosicionDrawer({
               className={cn(
                 "h-9 flex-1 rounded-full border text-sm transition-colors cursor-pointer",
                 modo === "valor"
-                  ? "border-sky-500/40 bg-sky-500/10 font-medium text-sky-400"
+                  ? "border-oro/40 bg-oro/10 font-medium text-oro"
                   : "border-white/[0.07] text-neutral-400"
               )}
             >
@@ -550,8 +550,8 @@ function DetallePosicionDrawer({
               type="submit"
               disabled={cents === null}
               className={cn(
-                "flex size-12 shrink-0 items-center justify-center rounded-xl text-white transition-all active:scale-95 disabled:opacity-40 cursor-pointer",
-                modo === "valor" ? "bg-sky-500" : "bg-primary text-primary-foreground"
+                "flex size-12 shrink-0 items-center justify-center rounded-xl text-[#07080b] transition-all active:scale-95 disabled:opacity-40 cursor-pointer",
+                modo === "valor" ? "bg-oro" : "bg-primary"
               )}
               aria-label="Guardar"
             >

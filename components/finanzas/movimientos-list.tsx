@@ -50,7 +50,7 @@ function subtotalSemana(
   if (filtro === "ingreso")
     return { texto: `+${formatEUR(suma)}`, clase: "text-emerald-400" }
   if (filtro === "inversion")
-    return { texto: formatEUR(suma), clase: "text-sky-400" }
+    return { texto: formatEUR(suma), clase: "text-oro" }
   return { texto: `−${formatEUR(suma)}`, clase: "text-rose-400" }
 }
 
