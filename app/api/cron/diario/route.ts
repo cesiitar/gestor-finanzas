@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     const { error: errInsert } = await supabase.from("movimientos").insert({
       user_id: userId,
       fecha: hoy,
-      tipo: "gasto",
+      tipo: fijo.tipo ?? "gasto",
       categoria_id: fijo.categoria_id,
       concepto: fijo.nombre,
       importe_cents: fijo.importe_cents,
@@ -68,13 +68,15 @@ export async function GET(req: NextRequest) {
       console.error(`cron diario: fallo al registrar "${fijo.nombre}":`, errInsert.message)
       continue
     }
-    registrados.push(`🔁 ${fijo.nombre} · ${formatEUR(fijo.importe_cents)}`)
+    registrados.push(
+      `${fijo.tipo === "ingreso" ? "🟢" : "🔴"} ${fijo.nombre} · ${formatEUR(fijo.importe_cents)}`
+    )
   }
 
   if (registrados.length > 0 && chatId) {
     await enviarMensaje(
       chatId,
-      `<b>Gastos fijos de hoy registrados</b>\n${registrados.join("\n")}`
+      `<b>Fijos de hoy registrados</b>\n${registrados.join("\n")}`
     )
   }
 

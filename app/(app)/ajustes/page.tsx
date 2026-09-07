@@ -28,7 +28,9 @@ export default async function AjustesPage() {
           <LogoutButton />
         </section>
 
-        <AjustesGastosFijos />
+        <AjustesGastosFijos tipo="gasto" />
+
+        <AjustesGastosFijos tipo="ingreso" />
 
         <AjustesPresupuestos />
 

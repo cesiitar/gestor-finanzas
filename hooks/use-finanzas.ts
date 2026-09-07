@@ -490,14 +490,19 @@ export function useFinanzas() {
 
   // ---- Gastos fijos ----
   const addGastoFijo = useCallback(
-    async (fijo: Pick<GastoFijo, "nombre" | "categoria_id" | "importe_cents" | "dia_mes">) => {
+    async (
+      fijo: Pick<
+        GastoFijo,
+        "nombre" | "categoria_id" | "importe_cents" | "dia_mes" | "tipo"
+      >
+    ) => {
       const { data, error } = await supabase
         .from("gastos_fijos")
         .insert(fijo)
         .select("*")
         .single()
       if (error) {
-        toast.error("No se pudo crear el gasto fijo", { description: error.message })
+        toast.error("No se pudo crear el fijo", { description: error.message })
         return
       }
       setGastosFijos((prev) =>

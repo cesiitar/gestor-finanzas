@@ -30,10 +30,15 @@ export interface Movimiento {
   created_at: string
 }
 
-/** Gasto que se repite igual todos los meses; el cron lo registra solo */
+/**
+ * Movimiento que se repite igual todos los meses y el cron registra solo.
+ * Sirve para gastos (alquiler, gym) y para ingresos (nómina, alquiler cobrado).
+ */
 export interface GastoFijo {
   id: string
   user_id: string
+  /** 'gasto' o 'ingreso': define qué movimiento genera el cron */
+  tipo: "gasto" | "ingreso"
   nombre: string
   categoria_id: string
   importe_cents: number
