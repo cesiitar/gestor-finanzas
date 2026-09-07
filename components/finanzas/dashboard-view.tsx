@@ -9,7 +9,6 @@ import {
   TrendingUp,
   TrendingDown,
   Flame,
-  PiggyBank,
 } from "lucide-react"
 import {
   ChartContainer,
@@ -318,32 +317,14 @@ export function DashboardView() {
           <section
             aria-label="Ahorro del mes"
             className={cn(
-              "relative overflow-hidden rounded-[1.75rem] border p-5",
+              "relative overflow-hidden rounded-[1.75rem] border p-6",
               r.ahorro >= 0
                 ? "luz-borde border-primary/25 bg-gradient-to-b from-primary/[0.12] to-white/[0.02] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_0_90px_-20px_rgba(163,230,53,0.45)]"
                 : "border-rose-500/25 bg-gradient-to-b from-rose-500/[0.10] to-white/[0.02] backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.10),0_0_90px_-20px_rgba(244,63,94,0.35)]"
             )}
           >
-            {/* Retícula de fondo, desvaneciéndose hacia abajo a la derecha */}
-            <div
-              aria-hidden
-              className="absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_75%)]"
-            />
             <div className="relative">
-              <div className="flex items-start justify-between">
-                <p className="micro-label pt-1">Ahorro del mes</p>
-                <span
-                  className={cn(
-                    "flex size-9 items-center justify-center rounded-full",
-                    r.ahorro >= 0
-                      ? "bg-primary/15 text-primary"
-                      : "bg-rose-500/15 text-rose-400"
-                  )}
-                  aria-hidden
-                >
-                  <PiggyBank className="size-[18px]" strokeWidth={2.2} />
-                </span>
-              </div>
+              <p className="micro-label">Ahorro del mes</p>
 
               {/* Importe con los decimales atenuados */}
               <p
@@ -352,7 +333,7 @@ export function DashboardView() {
                   r.ahorro < 0 && "text-rose-400"
                 )}
               >
-                <span className="text-[44px] font-semibold">
+                <span className="text-[52px] font-medium tracking-[-0.03em]">
                   {r.ahorro < 0 && "−"}
                   {partesEUR(Math.abs(r.ahorro)).entero}
                 </span>

@@ -115,15 +115,11 @@ export function InversionesView() {
 
       <main className="space-y-8 px-4">
         {/* KPIs de cartera */}
-        <section className="relative overflow-hidden rounded-[1.75rem] border border-oro/25 bg-gradient-to-b from-oro/[0.09] to-white/[0.02] backdrop-blur-2xl p-5 shadow-[0_0_90px_-20px_rgba(232,194,104,0.35)]">
-          <div
-            aria-hidden
-            className="absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:28px_28px] [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_75%)]"
-          />
+        <section className="relative overflow-hidden rounded-[1.75rem] border border-oro/25 bg-gradient-to-b from-oro/[0.09] to-white/[0.02] backdrop-blur-2xl p-6 shadow-[0_0_90px_-20px_rgba(232,194,104,0.35)]">
           <div className="relative">
             <p className="micro-label">Valor de la cartera</p>
             <p className="pt-2 font-display leading-none tabular-nums">
-              <span className="text-[44px] font-semibold">
+              <span className="text-[52px] font-medium tracking-[-0.03em]">
                 {partesEUR(valorCartera).entero}
               </span>
               <span className="text-2xl font-medium text-neutral-500">
@@ -280,7 +276,7 @@ function NuevaPosicionDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
+      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.10)]">
         <DrawerHeader>
           <DrawerTitle>Nuevo fondo o posición</DrawerTitle>
         </DrawerHeader>
@@ -439,7 +435,7 @@ function DetallePosicionDrawer({
 
   return (
     <Drawer open={posicion !== null} onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
+      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.10)]">
         <DrawerHeader>
           <DrawerTitle className="truncate">{posicion.nombre}</DrawerTitle>
         </DrawerHeader>

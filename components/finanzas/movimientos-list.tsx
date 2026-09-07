@@ -85,8 +85,8 @@ function FilaMovimiento({
           : undefined
       }
       className={cn(
-        "flex items-center gap-3 px-4 py-3",
-        onSelect && "cursor-pointer transition-colors hover:bg-white/[0.03]"
+        "flex items-center gap-3.5 rounded-2xl px-2.5 py-3.5",
+        onSelect && "cursor-pointer transition-colors hover:bg-white/[0.04]"
       )}
     >
       <span className="flex size-9 shrink-0 items-center justify-center" aria-hidden>
@@ -154,9 +154,9 @@ export function MovimientosList({
 
   if (cargando) {
     return (
-      <div className="card divide-y divide-white/[0.04] overflow-hidden" aria-busy>
+      <div className="space-y-1" aria-busy>
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-16 animate-pulse bg-white/[0.02]" />
+          <div key={i} className="h-16 animate-pulse rounded-2xl bg-white/[0.025]" />
         ))}
       </div>
     )
@@ -207,7 +207,7 @@ export function MovimientosList({
                 {s.subtotal.texto}
               </span>
             </div>
-            <ul className="card divide-y divide-white/[0.04] overflow-hidden">
+            <ul className="space-y-0.5">
               <AnimatePresence initial={false}>
                 {s.movs.map((mov) => (
                   <FilaMovimiento
@@ -227,7 +227,7 @@ export function MovimientosList({
 
   // Vista plana (p. ej. aportaciones en la pestaña de inversión)
   return (
-    <ul className="card divide-y divide-white/[0.04] overflow-hidden">
+    <ul className="space-y-0.5">
       <AnimatePresence initial={false}>
         {movimientos.map((mov) => (
           <FilaMovimiento

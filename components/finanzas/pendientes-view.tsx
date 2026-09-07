@@ -352,7 +352,7 @@ function PendienteDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
-      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl">
+      <DrawerContent className="border-white/[0.08] bg-[#0b0d11]/95 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.10)]">
         <DrawerHeader>
           <DrawerTitle>{editando ? "Editar" : "Nuevo pendiente"}</DrawerTitle>
         </DrawerHeader>
