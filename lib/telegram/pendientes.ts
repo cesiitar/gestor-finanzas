@@ -175,7 +175,8 @@ export async function marcarHechoBot(
   texto: string,
   prefiere: "cobro" | "pago" | null
 ) {
-  const busqueda = norm(texto)
+  // "pagado a Maria" / "cobrado de Juan": la preposición no es parte del nombre
+  const busqueda = norm(texto).replace(/^(?:a|al|de|del)\s+/, "")
   if (!busqueda) {
     await enviarMensaje(chatId, "Dime cuál: <code>cobrado Juan</code>")
     return
@@ -227,7 +228,25 @@ export async function marcarHechoBot(
   const p = candidatos[0]
   await supabase.from("pendientes").update({ hecho: true }).eq("id", p.id)
   const detalle = `${p.persona ?? p.concepto}${p.importe_cents != null ? ` · ${formatEUR(p.importe_cents)}` : ""}`
-  await enviarMensaje(chatId, `✅ Hecho: ${detalle}`)
+
+  // Se ofrece apuntarlo como movimiento, pero no se hace solo: cobrar algo
+  // cuyo gasto original nunca apuntaste no es un ingreso, es una devolución,
+  // y meterlo inflaría los ingresos del mes. La decisión es por deuda.
+  const botones =
+    p.importe_cents != null && p.tipo !== "tarea"
+      ? [
+          [
+            {
+              text:
+                p.tipo === "cobro"
+                  ? "➕ Apuntar como ingreso"
+                  : "➖ Apuntar como gasto",
+              callback_data: `sd|${p.id.replace(/-/g, "")}`,
+            },
+          ],
+        ]
+      : undefined
+  await enviarMensaje(chatId, `✅ Hecho: ${detalle}`, botones)
 }
 
 /** "quién me debe" / "deudas" → lista de cobros y pagos con totales */

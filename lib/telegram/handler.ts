@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { formatEUR, hoyISO } from "@/lib/finanzas/format"
-import type { Categoria, Movimiento, TipoMovimiento } from "@/lib/finanzas/types"
+import type { Categoria, Movimiento, Pendiente, TipoMovimiento } from "@/lib/finanzas/types"
 import { enviarMensaje, editarMensaje, responderCallback, type BotonInline } from "./api"
 import { parsearMovimiento, sugerirCategoria, CATEGORIA_FALLBACK } from "./parser"
 import { interpretarMovimientoIA } from "./nlu"
@@ -155,12 +155,12 @@ async function manejarTexto(chatId: number, texto: string) {
     return
   }
   // Marcar como hecho: "cobrado Juan", "pagado Maria", "hecho Netflix"
-  const cobrado = texto.match(/^\s*(?:cobrad[oa]|me\s+(?:pag[oó]|pagaron))\b\s*([\s\S]+)/i)
+  const cobrado = texto.match(/^\s*(?:ya\s+)?(?:cobrad[oa]|me\s+(?:ha\s+|han\s+)?(?:pag[oó]|pagado|pagaron))\s+([\s\S]+)/i)
   if (cobrado) {
     await marcarHechoBot(chatId, cobrado[1].trim(), "cobro")
     return
   }
-  const pagado = texto.match(/^\s*pagad[oa]\b\s*([\s\S]+)/i)
+  const pagado = texto.match(/^\s*(?:ya\s+)?(?:le\s+)?(?:he\s+)?(?:pagad[oa]|pagu[eé])\s+([\s\S]+)/i)
   if (pagado) {
     await marcarHechoBot(chatId, pagado[1].trim(), "pago")
     return
@@ -403,6 +403,66 @@ async function manejarCallback(
         messageId,
         `🗑 Borrado: ${NOMBRE_TIPO[(mov as Movimiento).tipo]} ${formatEUR((mov as Movimiento).importe_cents)}`
       )
+    return
+  }
+
+  // Saldar: convertir una deuda ya marcada como hecha en movimiento real
+  if (accion === "sd") {
+    const { data: pend } = await supabase
+      .from("pendientes")
+      .select("*")
+      .eq("id", movId)
+      .eq("user_id", USER_ID())
+      .single()
+    const p = pend as Pendiente | null
+    if (!p || p.importe_cents == null) {
+      await responderCallback(callbackId, "Ya no existe")
+      return
+    }
+
+    const tipo: TipoMovimiento = p.tipo === "cobro" ? "ingreso" : "gasto"
+    const { data: cats } = await supabase
+      .from("categorias")
+      .select("*")
+      .eq("user_id", USER_ID())
+      .order("created_at")
+    const delTipo = ((cats ?? []) as Categoria[]).filter((c) => c.tipo === tipo)
+    const sugerida = sugerirCategoria(p.concepto)
+    const categoria =
+      (sugerida &&
+        delTipo.find((c) => c.nombre.toLowerCase() === sugerida.toLowerCase())) ||
+      delTipo.find(
+        (c) => c.nombre.toLowerCase() === CATEGORIA_FALLBACK[tipo].toLowerCase()
+      ) ||
+      delTipo[0]
+    if (!categoria) {
+      await responderCallback(callbackId, `No tienes categorías de ${tipo}`)
+      return
+    }
+
+    const concepto = p.persona ? `${p.concepto} (${p.persona})` : p.concepto
+    const { data: mov } = await supabase
+      .from("movimientos")
+      .insert({
+        user_id: USER_ID(),
+        fecha: hoyISO(),
+        tipo,
+        categoria_id: categoria.id,
+        concepto,
+        importe_cents: p.importe_cents,
+      })
+      .select("*")
+      .single()
+
+    await responderCallback(callbackId, mov ? "Apuntado" : "No se pudo")
+    if (mov) {
+      await editarMensaje(
+        chatId,
+        messageId,
+        `✅ Saldado y apuntado\n${tipo === "ingreso" ? "🟢" : "🔴"} ${NOMBRE_TIPO[tipo]} ${formatEUR(p.importe_cents)} · ${categoria.nombre} · ${concepto}`,
+        botonesMovimiento(mov as Movimiento, delTipo, categoria.id)
+      )
+    }
     return
   }
 
