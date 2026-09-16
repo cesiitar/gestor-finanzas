@@ -21,8 +21,15 @@ const FILTROS: { valor: TipoMovimiento | "todos"; etiqueta: string }[] = [
 
 /** Home / Registro: últimos movimientos con filtro por tipo */
 export function HomeClient() {
-  const { categorias, categoriasById, movimientos, cargando, abrirRegistro } =
-    useFinanzasCtx()
+  const {
+    categorias,
+    categoriasById,
+    movimientos,
+    pendientes,
+    cargando,
+    abrirRegistro,
+  } = useFinanzasCtx()
+  const pendientesAbiertos = pendientes.filter((p) => !p.hecho).length
   const [mes, setMes] = useState(hoyISO().slice(0, 7))
   const [filtro, setFiltro] = useState<TipoMovimiento | "todos">("todos")
   const [editando, setEditando] = useState<Movimiento | null>(null)
@@ -103,12 +110,18 @@ export function HomeClient() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          {/* Con etiqueta: el icono solo no decía qué había detrás */}
           <Link
             href="/pendientes"
-            aria-label="Pendientes"
-            className="control flex size-11 items-center justify-center rounded-full"
+            className="control flex h-11 items-center gap-2 rounded-full pl-3.5 pr-4"
           >
             <CalendarClock className="size-[18px]" aria-hidden />
+            <span className="text-[13px] font-medium">Pendientes</span>
+            {pendientesAbiertos > 0 && (
+              <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground tabular-nums">
+                {pendientesAbiertos}
+              </span>
+            )}
           </Link>
           <Link
             href="/ajustes"

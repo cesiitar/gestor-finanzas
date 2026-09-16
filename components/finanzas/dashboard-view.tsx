@@ -9,6 +9,7 @@ import {
   TrendingUp,
   TrendingDown,
   Flame,
+  CalendarDays,
 } from "lucide-react"
 import {
   ChartContainer,
@@ -152,6 +153,23 @@ export function DashboardView() {
 
   const r = useMemo(() => resumenDe(delMes), [delMes])
   const rPrev = useMemo(() => resumenDe(delMesAnterior), [delMesAnterior])
+
+  // Calendario del mes: cuánto se gastó cada día. Calendario real (no las
+  // semanas del mes que usa el resto de la app), por eso alinea por día
+  // de la semana, con el lunes primero.
+  const calendario = useMemo(() => {
+    const [y, m] = mes.split("-").map(Number)
+    const diasMes = new Date(y, m, 0).getDate()
+    const huecoInicial = (new Date(y, m - 1, 1).getDay() + 6) % 7
+    const porDia = new Map<number, number>()
+    for (const mv of delMes) {
+      if (mv.tipo !== "gasto") continue
+      const dia = Number(mv.fecha.slice(8, 10))
+      porDia.set(dia, (porDia.get(dia) ?? 0) + mv.importe_cents)
+    }
+    const max = Math.max(1, ...porDia.values())
+    return { diasMes, huecoInicial, porDia, max }
+  }, [mes, delMes])
 
   /** Parte del gasto del mes que vino de gastos fijos automáticos */
   const gastosFijosMes = useMemo(
@@ -481,6 +499,72 @@ export function DashboardView() {
               )}
             </div>
           </section>
+
+          {/* ── Calendario: qué días se gastó y cuánto ─────────────── */}
+          {r.gastos > 0 && (
+            <section className="px-1.5" aria-label="Gasto por día">
+              <h2 className="micro-label flex items-center gap-1.5">
+                <CalendarDays className="size-3.5" aria-hidden /> Gasto por día
+              </h2>
+              <div className="grid grid-cols-7 gap-1 pt-3">
+                {["L", "M", "X", "J", "V", "S", "D"].map((d, i) => (
+                  <span
+                    key={i}
+                    className="pb-0.5 text-center font-mono text-[9px] tracking-wider text-neutral-600"
+                  >
+                    {d}
+                  </span>
+                ))}
+                {Array.from({ length: calendario.huecoInicial }, (_, i) => (
+                  <span key={`hueco-${i}`} aria-hidden />
+                ))}
+                {Array.from({ length: calendario.diasMes }, (_, i) => i + 1).map(
+                  (dia) => {
+                    const cents = calendario.porDia.get(dia) ?? 0
+                    const esHoy =
+                      `${mes}-${String(dia).padStart(2, "0")}` === hoyISO()
+                    // Más gasto, más sólido: se ve de un vistazo dónde pesa el mes
+                    const fuerza = cents > 0 ? cents / calendario.max : 0
+                    const euros = Math.round(cents / 100)
+                    return (
+                      <div
+                        key={dia}
+                        title={cents > 0 ? formatEUR(cents) : undefined}
+                        className={cn(
+                          "flex aspect-square flex-col items-center justify-center rounded-[0.6rem] border",
+                          cents > 0 ? "border-white/[0.07]" : "border-transparent",
+                          esHoy && "ring-1 ring-primary/50"
+                        )}
+                        style={
+                          cents > 0
+                            ? {
+                                backgroundColor: `rgba(255,255,255,${(0.035 + 0.13 * fuerza).toFixed(3)})`,
+                              }
+                            : undefined
+                        }
+                      >
+                        <span
+                          className={cn(
+                            "text-[11px] leading-none tabular-nums",
+                            cents > 0 ? "text-neutral-300" : "text-neutral-700"
+                          )}
+                        >
+                          {dia}
+                        </span>
+                        {cents > 0 && (
+                          <span className="pt-0.5 font-display text-[9px] font-medium leading-none tabular-nums text-neutral-400">
+                            {euros >= 1000
+                              ? `${(euros / 1000).toFixed(1)}k`
+                              : euros}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  }
+                )}
+              </div>
+            </section>
+          )}
 
           {/* ── Ritmo de gasto (solo mes en curso) ─────────────────── */}
           {ritmo && r.gastos > 0 && (

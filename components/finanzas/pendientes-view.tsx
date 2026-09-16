@@ -19,10 +19,21 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { formatEUR, formatFechaCorta, parseImporteToCents } from "@/lib/finanzas/format"
+import {
+  formatEUR,
+  formatFechaCorta,
+  hoyISO,
+  parseImporteToCents,
+} from "@/lib/finanzas/format"
+import { sugerirCategoria, CATEGORIA_FALLBACK } from "@/lib/telegram/parser"
 import { useFinanzasCtx } from "./finanzas-provider"
-import type { Pendiente, TipoPendiente } from "@/lib/finanzas/types"
+import type {
+  Pendiente,
+  TipoPendiente,
+  TipoMovimiento,
+} from "@/lib/finanzas/types"
 
 const TIPOS: { valor: TipoPendiente; etiqueta: string; Icono: typeof Bell }[] = [
   { valor: "cobro", etiqueta: "Me deben", Icono: ArrowDownLeft },
@@ -35,6 +46,13 @@ const ESTILO_TIPO: Record<TipoPendiente, { texto: string; fondo: string }> = {
   pago: { texto: "text-rose-400", fondo: "bg-rose-500/12" },
   tarea: { texto: "text-oro", fondo: "bg-oro/12" },
 }
+
+/** Secciones de la lista, en este orden */
+const GRUPOS: { tipo: TipoPendiente; titulo: string }[] = [
+  { tipo: "cobro", titulo: "Te deben" },
+  { tipo: "pago", titulo: "Debes" },
+  { tipo: "tarea", titulo: "Recordatorios" },
+]
 
 const OPCIONES_AVISO = [
   { dias: 0, etiqueta: "El día" },
@@ -52,7 +70,13 @@ function ordenar(a: Pendiente, b: Pendiente): number {
 }
 
 export function PendientesView() {
-  const { pendientes, togglePendienteHecho, borrarPendiente } = useFinanzasCtx()
+  const {
+    pendientes,
+    categorias,
+    togglePendienteHecho,
+    borrarPendiente,
+    addMovimiento,
+  } = useFinanzasCtx()
   const [drawerAbierto, setDrawerAbierto] = useState(false)
   const [editando, setEditando] = useState<Pendiente | null>(null)
 
@@ -79,6 +103,49 @@ export function PendientesView() {
   function abrirEdicion(p: Pendiente) {
     setEditando(p)
     setDrawerAbierto(true)
+  }
+
+  /** Crea el movimiento real a partir de una deuda saldada */
+  function apuntarComoMovimiento(p: Pendiente, tipo: TipoMovimiento) {
+    const delTipo = categorias.filter((c) => c.tipo === tipo)
+    const sugerida = sugerirCategoria(p.concepto)
+    const categoria =
+      (sugerida &&
+        delTipo.find((c) => c.nombre.toLowerCase() === sugerida.toLowerCase())) ||
+      delTipo.find(
+        (c) => c.nombre.toLowerCase() === CATEGORIA_FALLBACK[tipo].toLowerCase()
+      ) ||
+      delTipo[0]
+    if (!categoria) {
+      toast.error(`No tienes categorías de ${tipo}`)
+      return
+    }
+    addMovimiento({
+      fecha: hoyISO(),
+      tipo,
+      categoria_id: categoria.id,
+      concepto: p.persona ? `${p.concepto} (${p.persona})` : p.concepto,
+      importe_cents: p.importe_cents!,
+    })
+  }
+
+  /**
+   * Al saldar una deuda se ofrece apuntarla como movimiento, no se hace solo:
+   * cobrar algo cuyo gasto original nunca apuntaste es una devolución, no un
+   * ingreso, y meterlo inflaría el mes. Se decide deuda por deuda.
+   */
+  function marcarHecho(p: Pendiente) {
+    togglePendienteHecho(p.id, p.hecho)
+    if (p.hecho || p.importe_cents == null || p.tipo === "tarea") return
+    const tipo: TipoMovimiento = p.tipo === "cobro" ? "ingreso" : "gasto"
+    toast.success(`Saldado · ${formatEUR(p.importe_cents)}`, {
+      description: `¿Lo apunto también como ${tipo}?`,
+      duration: 7000,
+      action: {
+        label: tipo === "ingreso" ? "Sí, ingreso" : "Sí, gasto",
+        onClick: () => apuntarComoMovimiento(p, tipo),
+      },
+    })
   }
 
   return (
@@ -143,18 +210,42 @@ export function PendientesView() {
             </button>
           </div>
         ) : (
-          <ul className="space-y-1.5">
-            <AnimatePresence initial={false}>
-              {abiertos.map((p) => (
-                <FilaPendiente
-                  key={p.id}
-                  p={p}
-                  onToggle={() => togglePendienteHecho(p.id, p.hecho)}
-                  onEditar={() => abrirEdicion(p)}
-                />
-              ))}
-            </AnimatePresence>
-          </ul>
+          // Agrupado por tipo: de un vistazo se sabe qué es cada cosa, en vez
+          // de una lista mezclada donde solo el color del icono lo distinguía
+          GRUPOS.map(({ tipo, titulo }) => {
+            const suyos = abiertos.filter((p) => p.tipo === tipo)
+            if (suyos.length === 0) return null
+            const total = suyos.reduce((s, p) => s + (p.importe_cents ?? 0), 0)
+            return (
+              <section key={tipo}>
+                <div className="flex items-baseline justify-between px-1.5 pb-2">
+                  <h2 className="micro-label">{titulo}</h2>
+                  {total > 0 && (
+                    <span
+                      className={cn(
+                        "font-display text-xs font-semibold tabular-nums",
+                        ESTILO_TIPO[tipo].texto
+                      )}
+                    >
+                      {formatEUR(total)}
+                    </span>
+                  )}
+                </div>
+                <ul className="space-y-1.5">
+                  <AnimatePresence initial={false}>
+                    {suyos.map((p) => (
+                      <FilaPendiente
+                        key={p.id}
+                        p={p}
+                        onToggle={() => marcarHecho(p)}
+                        onEditar={() => abrirEdicion(p)}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </ul>
+              </section>
+            )
+          })
         )}
 
         {/* Hechos (colapsable simple) */}
@@ -250,8 +341,9 @@ function FilaPendiente({
         </p>
       </button>
 
-      {/* Importe (o icono de borrar en hechos) */}
-      {p.importe_cents != null ? (
+      {/* Importe y, en los hechos, borrar. Antes el importe ocultaba el botón
+          de borrar, así que una deuda saldada con cifra no se podía quitar. */}
+      {p.importe_cents != null && (
         <span
           className={cn(
             "shrink-0 font-display text-[15px] font-semibold tabular-nums",
@@ -260,15 +352,16 @@ function FilaPendiente({
         >
           {formatEUR(p.importe_cents)}
         </span>
-      ) : editarEsBorrar ? (
+      )}
+      {editarEsBorrar && (
         <button
           onClick={onEditar}
           aria-label="Borrar"
-          className="flex size-8 shrink-0 items-center justify-center text-neutral-600 hover:text-rose-400 cursor-pointer"
+          className="flex size-8 shrink-0 items-center justify-center text-neutral-600 transition-colors hover:text-rose-400 cursor-pointer"
         >
           <Trash2 className="size-4" aria-hidden />
         </button>
-      ) : null}
+      )}
     </motion.li>
   )
 }
