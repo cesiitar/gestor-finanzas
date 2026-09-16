@@ -12,12 +12,59 @@ import { enviarMensaje } from "./api"
 
 const USER_ID = () => (process.env.BOT_USER_ID ?? "").trim()
 
-/** Registra una deuda: tipo 'cobro' (me deben) o 'pago' (yo debo) */
-export async function registrarDeudaBot(
-  chatId: number | string,
-  resto: string,
+/** Palabras de moneda que no son concepto: "20 euros la cena" → "la cena" */
+const MONEDA = /^(?:euros?|eur|€|pavos?|lereles)$/i
+/** Relleno delante del concepto: "de la cena" → "la cena" */
+const RELLENO = /^(?:de|del|por|en|para|lo|los|las)$/i
+/** Preposición que marca a quién: "30 a Pablo", "20 de Pedro" */
+const A_QUIEN = /^(?:a|al|de|del)$/i
+/** Arranque de persona de dos palabras: "a mi madre", "a su hermano" */
+const POSESIVO = /^(?:mi|mis|tu|tus|su|sus)$/i
+
+export interface DeudaParseada {
   tipo: "cobro" | "pago"
-) {
+  persona: string | null
+  cents: number
+  concepto: string
+}
+
+/**
+ * Entiende una deuda escrita en lenguaje normal, con el nombre delante o
+ * detrás del importe. Se probó contra las formas que sale escribir de verdad:
+ *   "Juan me debe 20 euros" · "me debe Juan 20 la cena"
+ *   "me deben 15,50 Pedro del taxi" · "le debo 30 a Pablo"
+ * Devuelve null si no es una deuda (el handler sigue con otras reglas).
+ */
+export function parsearDeuda(texto: string): DeudaParseada | null {
+  const limpio = texto.trim()
+  let tipo: "cobro" | "pago" | null = null
+  let resto = ""
+  let personaDelante: string | null = null
+
+  // "Juan me debe 20" / "mi hermano me debe 50" (el nombre va primero)
+  let m = limpio.match(/^(.{1,40}?)\s+me\s+deben?\b\s*([\s\S]*)$/i)
+  if (m) {
+    tipo = "cobro"
+    personaDelante = m[1].trim()
+    resto = m[2]
+  }
+  // "me debe Juan 20 la cena" / "me deben 20 euros Juan"
+  if (!tipo && (m = limpio.match(/^\s*me\s+deben?\b\s*([\s\S]+)$/i))) {
+    tipo = "cobro"
+    resto = m[1]
+  }
+  // "debo Maria 50" / "le debo a Maria 50" / "yo debo 20 a Pablo"
+  if (!tipo && (m = limpio.match(/^\s*(?:yo\s+)?(?:les?\s+)?debo\b\s*([\s\S]+)$/i))) {
+    tipo = "pago"
+    resto = m[1]
+  }
+  // "tengo que pagarle 20 a Juan"
+  if (!tipo && (m = limpio.match(/^\s*tengo\s+que\s+pagar(?:les?)?\b\s*([\s\S]+)$/i))) {
+    tipo = "pago"
+    resto = m[1]
+  }
+  if (!tipo) return null
+
   const tokens = resto.trim().split(/\s+/).filter(Boolean)
   let idx = -1
   let cents: number | null = null
@@ -29,30 +76,50 @@ export async function registrarDeudaBot(
       break
     }
   }
-  if (cents === null) {
-    await enviarMensaje(
-      chatId,
-      tipo === "cobro"
-        ? "Formato: <code>me debe Juan 20 la cena</code>"
-        : "Formato: <code>debo Maria 50 la comida</code>"
-    )
-    return
+  if (cents === null) return null
+
+  const antes = tokens.slice(0, idx).filter((t) => !A_QUIEN.test(t))
+  let despues = tokens.slice(idx + 1).filter((t) => !MONEDA.test(t))
+
+  let persona = personaDelante ?? (antes.length > 0 ? antes.join(" ") : null)
+
+  // Sin nombre delante: buscarlo detrás, pero solo cuando está marcado
+  // ("a Pablo") o viene en mayúscula (un nombre). Si no, es concepto:
+  // "me debe 20 la cena" no puede acabar con persona="la".
+  if (!persona && despues.length > 0) {
+    if (A_QUIEN.test(despues[0]) && despues.length > 1) {
+      // "a mi madre" son dos palabras; "a Pablo la cena" solo una
+      const largo = POSESIVO.test(despues[1]) && despues.length > 2 ? 2 : 1
+      persona = despues.slice(1, 1 + largo).join(" ")
+      despues = despues.slice(1 + largo)
+    } else if (/^[A-ZÁÉÍÓÚÑ]/.test(despues[0])) {
+      persona = despues[0]
+      despues = despues.slice(1)
+    }
   }
 
-  // Persona = palabras antes del importe (quitando una 'a' suelta: "debo a Maria")
-  const persona = tokens
-    .slice(0, idx)
-    .filter((t) => !/^a$/i.test(t))
-    .join(" ")
-    .trim()
-  const concepto = tokens.slice(idx + 1).join(" ").trim()
+  while (despues.length > 0 && RELLENO.test(despues[0])) despues = despues.slice(1)
 
+  return {
+    tipo,
+    persona: persona && persona.length > 0 ? persona : null,
+    cents,
+    concepto: despues.join(" ").trim(),
+  }
+}
+
+/** Registra una deuda ya interpretada por parsearDeuda */
+export async function registrarDeudaBot(
+  chatId: number | string,
+  deuda: DeudaParseada
+) {
+  const { tipo, persona, cents, concepto } = deuda
   const supabase = createAdminClient()
   const { error } = await supabase.from("pendientes").insert({
     user_id: USER_ID(),
     tipo,
     concepto: concepto || (tipo === "cobro" ? "Te deben" : "Debes"),
-    persona: persona || null,
+    persona,
     importe_cents: cents,
   })
   if (error) {
@@ -60,14 +127,15 @@ export async function registrarDeudaBot(
     return
   }
 
-  const quien = persona || "alguien"
+  const quien = persona ?? "alguien"
   const linea =
     tipo === "cobro"
       ? `📥 <b>${quien}</b> te debe ${formatEUR(cents)}`
       : `📤 Debes ${formatEUR(cents)} a <b>${quien}</b>`
   await enviarMensaje(
     chatId,
-    `✅ Apuntado\n${linea}${concepto ? ` · ${concepto}` : ""}`
+    `✅ Apuntado
+${linea}${concepto ? ` · ${concepto}` : ""}`
   )
 }
 

@@ -13,6 +13,7 @@ import {
 } from "./inversiones"
 import {
   registrarDeudaBot,
+  parsearDeuda,
   registrarNotaBot,
   consultarDeudasBot,
   marcarHechoBot,
@@ -148,6 +149,11 @@ async function manejarTexto(chatId: number, texto: string) {
     await consultarDeudasBot(chatId)
     return
   }
+  // Recordatorio de formatos (para cuando no recuerdas cómo se escribía)
+  if (/^(deuda|c[oó]mo apunto|formato deudas?)$/.test(t)) {
+    await enviarMensaje(chatId, TEXTO_DEUDAS)
+    return
+  }
   // Marcar como hecho: "cobrado Juan", "pagado Maria", "hecho Netflix"
   const cobrado = texto.match(/^\s*(?:cobrad[oa]|me\s+(?:pag[oó]|pagaron))\b\s*([\s\S]+)/i)
   if (cobrado) {
@@ -164,16 +170,11 @@ async function manejarTexto(chatId: number, texto: string) {
     await marcarHechoBot(chatId, hechoCmd[1].trim(), null)
     return
   }
-  // "me debe Juan 20 cena" → cobro
-  const meDebe = texto.match(/^\s*me\s+deben?\b\s*([\s\S]+)/i)
-  if (meDebe) {
-    await registrarDeudaBot(chatId, meDebe[1].trim(), "cobro")
-    return
-  }
-  // "debo Maria 50 comida" → pago
-  const debo = texto.match(/^\s*(?:yo\s+)?debo\b\s*([\s\S]+)/i)
-  if (debo) {
-    await registrarDeudaBot(chatId, debo[1].trim(), "pago")
+  // Deudas en lenguaje natural, con el nombre delante o detrás del importe:
+  // "Juan me debe 20", "me debe Juan 20 la cena", "le debo 30 a Pablo"
+  const deuda = parsearDeuda(texto)
+  if (deuda) {
+    await registrarDeudaBot(chatId, deuda)
     return
   }
   // "nota cancelar Netflix" → tarea
@@ -568,6 +569,29 @@ async function estadoPresupuesto(chatId: number, nombre: string) {
   )
 }
 
+/** Chuleta de deudas: se enseña con /deuda, cuando no recuerdas el formato */
+const TEXTO_DEUDAS = [
+  "📒 <b>Deudas — cómo apuntarlas</b>",
+  "",
+  "No hay orden fijo: pon el nombre donde te salga.",
+  "",
+  "<b>Te deben</b>:",
+  "· <code>Lukas me debe 15 por cena</code>",
+  "· <code>me debe Lukas 15 por padel</code>",
+  "· <code>mi hermano me debe 50</code>",
+  "",
+  "<b>Debes tú</b>:",
+  "· <code>le debo 20 a Lukas por cena</code>",
+  "· <code>debo Lukas 20 el padel</code>",
+  "· <code>tengo que pagarle 30 a mi madre</code>",
+  "",
+  "<b>Cuando se salda</b>:",
+  "· <code>cobrado Lukas</code> — te lo han pagado",
+  "· <code>pagado Lukas</code> — lo has pagado tú",
+  "",
+  "Ver la lista entera: <code>deudas</code>",
+].join("\n")
+
 const TEXTO_AYUDA = [
   "🤖 <b>Tu gestor de finanzas</b>",
   "",
@@ -589,11 +613,12 @@ const TEXTO_AYUDA = [
   "· <code>invertí 200 en true value</code> — registra una aportación",
   "· <code>nuevo fondo Nombre; valor; ganancia</code> — añade un fondo",
   "",
-  "<b>Deudas y notas</b>:",
-  "· <code>me debe Juan 20 la cena</code> — apunta lo que te deben",
-  "· <code>debo Maria 50 la comida</code> — apunta lo que debes",
+  "<b>Deudas y notas</b> (el orden da igual):",
+  "· <code>Lukas me debe 15 por cena</code> o <code>me debe Lukas 15 por cena</code>",
+  "· <code>le debo 20 a Lukas</code> o <code>debo Lukas 20 la comida</code>",
   "· <code>deudas</code> — quién te debe y a quién debes",
-  "· <code>cobrado Juan</code> / <code>pagado Maria</code> — marcar saldado",
+  "· <code>cobrado Lukas</code> / <code>pagado Maria</code> — marcar saldado",
+  "· <code>/deuda</code> — te recuerdo estos formatos",
   "· <code>nota cancelar Netflix</code> — un recordatorio (fecha y aviso en la app)",
   "",
   "<b>Corregir</b>:",
