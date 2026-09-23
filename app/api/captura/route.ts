@@ -66,6 +66,19 @@ async function manejar(req: NextRequest): Promise<Response> {
 
   // Reutiliza toda la lógica del bot: categoría automática, aviso de
   // presupuesto y confirmación por Telegram con botones.
+  // Modo prueba: valida y responde sin registrar nada. Existe porque este
+  // endpoint escribe, y comprobarlo con llamadas normales llenaba la cuenta
+  // de gastos falsos. Nunca sondear un endpoint que escribe.
+  if (url.searchParams.get("dry") === "1") {
+    return Response.json({
+      ok: true,
+      dry: true,
+      concepto: concepto.trim() || "(VACIO)",
+      importe: importeStr,
+      importeCents,
+    })
+  }
+
   await registrarMovimiento(
     chatId,
     { tipo: "gasto", importeCents, concepto: concepto.trim() },
