@@ -338,10 +338,11 @@ export async function registrarMovimiento(
     }
   }
 
+  const uso = await usoDeCategorias(supabase, p.tipo)
   await enviarMensaje(
     chatId,
     prefijo + textoConfirmacion(mov as Movimiento, categoria.nombre) + alerta,
-    botonesMovimiento(mov as Movimiento, delTipo, categoria.id)
+    botonesMovimiento(mov as Movimiento, delTipo, categoria.id, uso)
   )
 }
 
@@ -356,29 +357,65 @@ function textoConfirmacion(mov: Movimiento, nombreCategoria: string): string {
 }
 
 /** Botones: cambiar a otra categoría del mismo tipo + borrar */
+/** Cuántas veces has usado cada categoría, para ofrecer primero las tuyas */
+async function usoDeCategorias(
+  supabase: ReturnType<typeof createAdminClient>,
+  tipo: TipoMovimiento
+): Promise<Map<string, number>> {
+  const { data } = await supabase
+    .from("movimientos")
+    .select("categoria_id")
+    .eq("user_id", USER_ID())
+    .eq("tipo", tipo)
+    .order("fecha", { ascending: false })
+    .limit(300)
+  const uso = new Map<string, number>()
+  for (const m of (data ?? []) as { categoria_id: string }[]) {
+    uso.set(m.categoria_id, (uso.get(m.categoria_id) ?? 0) + 1)
+  }
+  return uso
+}
+
+/** Cuántas categorías se enseñan antes de tener que pulsar "Más" */
+const CATEGORIAS_VISIBLES = 6
+
 function botonesMovimiento(
   mov: Movimiento,
   categoriasDelTipo: Categoria[],
-  categoriaActualId: string
+  categoriaActualId: string,
+  uso?: Map<string, number>,
+  expandido = false
 ): BotonInline[][] {
-  // Se ofrecen todas las categorías del tipo, no las primeras N: al cortar,
-  // las creadas después (Restaurantes, Peluquería…) no salían nunca y
-  // parecía que el bot seguía con las categorías viejas. El tope alto es
-  // solo una salvaguarda para no construir un teclado absurdo.
-  const otras = categoriasDelTipo
-    .filter((c) => c.id !== categoriaActualId)
-    .slice(0, 18)
-  const filasCategorias: BotonInline[][] = []
-  for (let i = 0; i < otras.length; i += 3) {
-    filasCategorias.push(
-      otras.slice(i, i + 3).map((c, j) => ({
+  // OJO: el índice del callback apunta SIEMPRE a categoriasDelTipo, que va
+  // en orden estable por fecha de creación. Aquí solo se decide el orden de
+  // presentación y cuántas se enseñan. Si el índice dependiera del orden
+  // mostrado, al recalcular el uso tras registrar un gasto la misma
+  // pulsación acabaría eligiendo una categoría distinta.
+  const candidatas = categoriasDelTipo.filter((c) => c.id !== categoriaActualId)
+  const ordenadas = uso
+    ? [...candidatas].sort((a, b) => (uso.get(b.id) ?? 0) - (uso.get(a.id) ?? 0))
+    : candidatas
+  const mostradas = expandido
+    ? ordenadas.slice(0, 18)
+    : ordenadas.slice(0, CATEGORIAS_VISIBLES)
+  const hayMas = !expandido && ordenadas.length > CATEGORIAS_VISIBLES
+
+  const filas: BotonInline[][] = []
+  for (let i = 0; i < mostradas.length; i += 3) {
+    filas.push(
+      mostradas.slice(i, i + 3).map((c) => ({
         text: c.nombre,
-        // r|<mov hex32>|<índice global en la lista de su tipo>
-        callback_data: `r|${sinGuiones(mov.id)}|${categoriasDelTipo.findIndex((x) => x.id === otras[i + j].id)}`,
+        // r|<mov hex32>|<índice en la lista estable de su tipo>
+        callback_data: `r|${sinGuiones(mov.id)}|${categoriasDelTipo.findIndex((x) => x.id === c.id)}`,
       }))
     )
   }
-  return [...filasCategorias, [{ text: "🗑 Borrar", callback_data: `d|${sinGuiones(mov.id)}` }]]
+  if (hayMas) {
+    filas.push([
+      { text: "⋯ Más categorías", callback_data: `m|${sinGuiones(mov.id)}` },
+    ])
+  }
+  return [...filas, [{ text: "🗑 Borrar", callback_data: `d|${sinGuiones(mov.id)}` }]]
 }
 
 // ---------------------------------------------------------------------------
@@ -409,6 +446,37 @@ async function manejarCallback(
         messageId,
         `🗑 Borrado: ${NOMBRE_TIPO[(mov as Movimiento).tipo]} ${formatEUR((mov as Movimiento).importe_cents)}`
       )
+    return
+  }
+
+  // "Más categorías": repinta el mismo mensaje con todas las opciones
+  if (accion === "m") {
+    const { data: fila } = await supabase
+      .from("movimientos")
+      .select("*")
+      .eq("id", movId)
+      .eq("user_id", USER_ID())
+      .single()
+    if (!fila) {
+      await responderCallback(callbackId, "Ya no existe")
+      return
+    }
+    const mov = fila as Movimiento
+    const { data: cats } = await supabase
+      .from("categorias")
+      .select("*")
+      .eq("user_id", USER_ID())
+      .order("created_at")
+    const delTipo = ((cats ?? []) as Categoria[]).filter((c) => c.tipo === mov.tipo)
+    const actual = delTipo.find((c) => c.id === mov.categoria_id)
+    const uso = await usoDeCategorias(supabase, mov.tipo)
+    await responderCallback(callbackId)
+    await editarMensaje(
+      chatId,
+      messageId,
+      textoConfirmacion(mov, actual?.nombre ?? ""),
+      botonesMovimiento(mov, delTipo, mov.categoria_id, uso, true)
+    )
     return
   }
 
@@ -466,7 +534,12 @@ async function manejarCallback(
         chatId,
         messageId,
         `✅ Saldado y apuntado\n${tipo === "ingreso" ? "🟢" : "🔴"} ${NOMBRE_TIPO[tipo]} ${formatEUR(p.importe_cents)} · ${categoria.nombre} · ${concepto}`,
-        botonesMovimiento(mov as Movimiento, delTipo, categoria.id)
+        botonesMovimiento(
+          mov as Movimiento,
+          delTipo,
+          categoria.id,
+          await usoDeCategorias(supabase, tipo)
+        )
       )
     }
     return
@@ -507,7 +580,12 @@ async function manejarCallback(
       chatId,
       messageId,
       textoConfirmacion({ ...(mov as Movimiento), categoria_id: nueva.id }, nueva.nombre),
-      botonesMovimiento(mov as Movimiento, delTipo, nueva.id)
+      botonesMovimiento(
+        mov as Movimiento,
+        delTipo,
+        nueva.id,
+        await usoDeCategorias(supabase, (mov as Movimiento).tipo)
+      )
     )
   }
 }
