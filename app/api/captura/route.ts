@@ -22,9 +22,18 @@ async function manejar(req: NextRequest): Promise<Response> {
     return new Response("unauthorized", { status: 401 })
   }
 
-  // Importe y concepto pueden venir por query o por body (form/JSON)
-  let importeStr = url.searchParams.get("importe") ?? ""
-  let concepto = url.searchParams.get("concepto") ?? ""
+  // Importe y concepto pueden venir por query o por body (form/JSON).
+  // Se aceptan alias porque cada app de automatización nombra distinto sus
+  // variables, y depurar en el móvil a ciegas cuesta mucho más que esto.
+  const q = (...claves: string[]) => {
+    for (const k of claves) {
+      const v = url.searchParams.get(k)
+      if (v) return v
+    }
+    return ""
+  }
+  let importeStr = q("importe", "texto", "notificacion")
+  let concepto = q("concepto", "titulo", "comercio")
   if (req.method === "POST" && !importeStr) {
     const ct = req.headers.get("content-type") ?? ""
     try {
@@ -63,7 +72,14 @@ async function manejar(req: NextRequest): Promise<Response> {
     "💳 "
   )
 
-  return Response.json({ ok: true })
+  // Se devuelve lo recibido, no solo "ok": la respuesta se pinta en una
+  // notificación del móvil, y es la única forma de ver qué manda de verdad
+  // la automatización sin poder depurarla desde aquí.
+  return Response.json({
+    ok: true,
+    concepto: concepto.trim() || "(VACIO)",
+    importe: importeStr,
+  })
 }
 
 export async function POST(req: NextRequest) {
