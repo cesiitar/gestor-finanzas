@@ -361,7 +361,13 @@ function botonesMovimiento(
   categoriasDelTipo: Categoria[],
   categoriaActualId: string
 ): BotonInline[][] {
-  const otras = categoriasDelTipo.filter((c) => c.id !== categoriaActualId).slice(0, 6)
+  // Se ofrecen todas las categorías del tipo, no las primeras N: al cortar,
+  // las creadas después (Restaurantes, Peluquería…) no salían nunca y
+  // parecía que el bot seguía con las categorías viejas. El tope alto es
+  // solo una salvaguarda para no construir un teclado absurdo.
+  const otras = categoriasDelTipo
+    .filter((c) => c.id !== categoriaActualId)
+    .slice(0, 18)
   const filasCategorias: BotonInline[][] = []
   for (let i = 0; i < otras.length; i += 3) {
     filasCategorias.push(
