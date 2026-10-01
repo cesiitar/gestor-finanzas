@@ -33,7 +33,10 @@ async function manejar(req: NextRequest): Promise<Response> {
     return ""
   }
   let importeStr = q("importe", "texto", "notificacion")
-  let concepto = q("concepto", "titulo", "comercio")
+  // El título de la notificación de Google Wallet llega vacío, así que se
+  // aceptan los otros campos que puede traer (subtexto, ticker…) por si el
+  // nombre del comercio viaja en alguno de ellos.
+  let concepto = q("concepto", "titulo", "comercio", "subtexto", "ticker")
   if (req.method === "POST" && !importeStr) {
     const ct = req.headers.get("content-type") ?? ""
     try {
@@ -88,11 +91,15 @@ async function manejar(req: NextRequest): Promise<Response> {
   // Se devuelve lo recibido, no solo "ok": la respuesta se pinta en una
   // notificación del móvil, y es la única forma de ver qué manda de verdad
   // la automatización sin poder depurarla desde aquí.
-  return Response.json({
-    ok: true,
-    concepto: concepto.trim() || "(VACIO)",
-    importe: importeStr,
+  // Se devuelve TODO lo recibido (menos el secreto): es la única ventana que
+  // hay para ver qué campos trae de verdad una notificación, ya que desde
+  // aquí no se puede inspeccionar el móvil.
+  const recibido: Record<string, string> = {}
+  url.searchParams.forEach((valor, clave) => {
+    if (clave !== "secret") recibido[clave] = valor || "(VACIO)"
   })
+
+  return Response.json({ ok: true, usado: concepto.trim() || "(VACIO)", recibido })
 }
 
 export async function POST(req: NextRequest) {
