@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { Plus, TrendingUp, RefreshCw, Trash2 } from "lucide-react"
-import { Line, LineChart, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, Line, LineChart, XAxis, YAxis } from "recharts"
 import {
   Drawer,
   DrawerContent,
@@ -56,6 +56,50 @@ function fechaCorta(iso: string): string {
     .replace(".", "")
 }
 
+/** Valoraciones de una posición, ordenadas y en euros (para las gráficas) */
+function serieDePosicion(valoraciones: Valoracion[], posicionId: string) {
+  return valoraciones
+    .filter((v) => v.posicion_id === posicionId)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha))
+    .map((v) => ({ fecha: v.fecha, valor: v.valor_cents / 100 }))
+}
+
+/**
+ * Valor total de la cartera en cada fecha con valoración.
+ *
+ * Cada fondo se actualiza por su cuenta, así que en cada fecha se arrastra el
+ * último valor conocido de los demás. Sin ese arrastre, actualizar un solo
+ * fondo hundiría la línea global: los otros contarían como cero ese día.
+ */
+function serieCartera(posiciones: Posicion[], valoraciones: Valoracion[]) {
+  if (valoraciones.length === 0) return []
+
+  const porPosicion = new Map<string, { fecha: string; valor: number }[]>()
+  for (const p of posiciones) {
+    porPosicion.set(
+      p.id,
+      serieDePosicion(valoraciones, p.id).map((v) => ({
+        fecha: v.fecha,
+        valor: v.valor,
+      }))
+    )
+  }
+
+  const fechas = [...new Set(valoraciones.map((v) => v.fecha))].sort()
+  return fechas.map((fecha) => {
+    let total = 0
+    for (const serie of porPosicion.values()) {
+      let ultimo = 0
+      for (const punto of serie) {
+        if (punto.fecha > fecha) break
+        ultimo = punto.valor
+      }
+      total += ultimo
+    }
+    return { fecha, valor: total }
+  })
+}
+
 /**
  * Inversiones: cartera con coste sembrado + histórico de valoraciones.
  * Ganancia = valor actual − (coste inicial + aportaciones vinculadas).
@@ -104,6 +148,15 @@ export function InversionesView() {
     ? (posiciones.find((p) => p.id === detalle.id) ?? null)
     : null
 
+  const serieGlobal = useMemo(
+    () =>
+      serieCartera(posiciones, valoraciones).map((p) => ({
+        ...p,
+        etiqueta: fechaCorta(p.fecha),
+      })),
+    [posiciones, valoraciones]
+  )
+
   return (
     <>
       <header className="px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-5">
@@ -141,6 +194,50 @@ export function InversionesView() {
           </div>
         </section>
 
+        {/* Evolución del total: solo tiene sentido con dos fotos o más */}
+        {serieGlobal.length >= 2 && (
+          <section className="px-1.5" aria-label="Evolución de la cartera">
+            <h2 className="micro-label pb-3">Evolución de la cartera</h2>
+            <ChartContainer config={CONFIG_VAL} className="h-44 w-full">
+              <AreaChart data={serieGlobal} margin={{ left: 4, right: 8, top: 8 }}>
+                <defs>
+                  <linearGradient id="degradadoCartera" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#e8c268" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#e8c268" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="etiqueta"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: "#5b6069", fontSize: 10 }}
+                  dy={6}
+                  minTickGap={28}
+                />
+                <YAxis hide domain={["dataMin", "dataMax"]} />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(v) => (
+                        <span className="font-medium tabular-nums">
+                          {formatEUR(Math.round(Number(v) * 100))}
+                        </span>
+                      )}
+                    />
+                  }
+                />
+                <Area
+                  type="monotone"
+                  dataKey="valor"
+                  stroke="#e8c268"
+                  strokeWidth={2}
+                  fill="url(#degradadoCartera)"
+                />
+              </AreaChart>
+            </ChartContainer>
+          </section>
+        )}
+
         {/* Posiciones */}
         <section>
           <div className="flex items-center justify-between px-1.5 pb-3">
@@ -168,6 +265,7 @@ export function InversionesView() {
                 const aportado = aportadoPorPosicion.get(pos.id) ?? 0
                 const gananciaPos = pos.valor_actual_cents - aportado
                 const rentPos = aportado > 0 ? gananciaPos / aportado : 0
+                const chispa = serieDePosicion(valoraciones, pos.id)
                 return (
                   <li key={pos.id}>
                     <button
@@ -187,6 +285,27 @@ export function InversionesView() {
                           Invertido {formatEUR(aportado)}
                         </p>
                       </div>
+                      {/* Chispa de evolución: la forma de la curva de un
+                          vistazo, sin tener que abrir el fondo */}
+                      {chispa.length >= 2 && (
+                        <LineChart
+                          width={56}
+                          height={28}
+                          data={chispa}
+                          margin={{ top: 3, bottom: 3, left: 0, right: 0 }}
+                          className="shrink-0"
+                        >
+                          <YAxis hide domain={["dataMin", "dataMax"]} />
+                          <Line
+                            type="monotone"
+                            dataKey="valor"
+                            stroke={gananciaPos >= 0 ? "#a3e635" : "#fb7185"}
+                            strokeWidth={1.6}
+                            dot={false}
+                            isAnimationActive={false}
+                          />
+                        </LineChart>
+                      )}
                       <div className="shrink-0 text-right">
                         <p className="font-display text-[15px] font-semibold tabular-nums">
                           {formatEUR(pos.valor_actual_cents)}
